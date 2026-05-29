@@ -1,0 +1,19 @@
+/config
+  database.php
+
+/auth
+  login.php
+  logout.php
+
+/admin
+/kader
+/bidan
+
+/modules
+  keluarga/
+  anak/
+  kegiatan/
+  pemeriksaan/
+  imunisasi/
+
+/assets
