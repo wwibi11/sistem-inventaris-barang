@@ -439,6 +439,46 @@ textarea.form-control{
 
 </div>
 
+<div class="modal fade"
+     id="modalTambah"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-xl">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Tambah Anak
+                </h5>
+
+                <button type="button"
+                        class="close"
+                        data-dismiss="modal">
+
+                    <span>&times;</span>
+
+                </button>
+
+            </div>
+
+            <div class="modal-body p-0">
+
+                <iframe
+                    src="index.php?url=anak-create"
+                    width="100%"
+                    height="700"
+                    frameborder="0">
+                </iframe>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 <script>
 
