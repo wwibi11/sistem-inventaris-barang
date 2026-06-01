@@ -2,53 +2,6 @@
 require_once __DIR__ . '/../../config/database.php';
 
 // ==========================
-// SIMPAN
-// ==========================
-if (isset($_POST['simpan'])) {
-
-  $stmt = $pdo->prepare("
-    INSERT INTO anak
-    (
-      id_keluarga,
-      nik,
-      nama,
-      tempat_lahir,
-      tanggal_lahir,
-      jenis_kelamin,
-      anak_ke,
-      berat_lahir,
-      panjang_lahir,
-      nama_ayah,
-      nama_ibu,
-      status
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  ");
-
-  $stmt->execute([
-    $_POST['id_keluarga'],
-    $_POST['nik'],
-    $_POST['nama'],
-    $_POST['tempat_lahir'],
-    $_POST['tanggal_lahir'],
-    $_POST['jenis_kelamin'],
-    $_POST['anak_ke'],
-    $_POST['berat_lahir'],
-    $_POST['panjang_lahir'],
-    $_POST['nama_ayah'],
-    $_POST['nama_ibu'],
-    $_POST['status']
-  ]);
-
-  echo "
-  <script>
-    alert('Data anak berhasil ditambahkan');
-    location='index.php?url=anak';
-  </script>
-  ";
-}
-
-// ==========================
 // HAPUS
 // ==========================
 if (isset($_GET['hapus'])) {
@@ -64,14 +17,6 @@ if (isset($_GET['hapus'])) {
   ";
 }
 
-// ==========================
-// DATA KELUARGA
-// ==========================
-$keluarga = $pdo->query("
-  SELECT *
-  FROM keluarga
-  ORDER BY nama_kepala_keluarga ASC
-")->fetchAll();
 
 // ==========================
 // DATA ANAK
@@ -219,14 +164,14 @@ textarea.form-control{
 
     </div>
 
-    <button class="btn btn-primary shadow-sm"
-            data-toggle="modal"
-            data-target="#modalTambah">
+  <button class="btn btn-primary shadow-sm"
+        data-toggle="modal"
+        data-target="#modalTambah">
 
-      <i class="fas fa-plus mr-1"></i>
-      Tambah Anak
+    <i class="fas fa-plus mr-1"></i>
+    Tambah Anak
 
-    </button>
+</button>
 
   </div>
 
@@ -494,251 +439,6 @@ textarea.form-control{
 
 </div>
 
-<!-- MODAL TAMBAH -->
-<div class="modal fade" id="modalTambah" tabindex="-1">
-
-  <div class="modal-dialog modal-lg">
-
-    <div class="modal-content">
-
-      <div class="modal-header">
-
-        <h5 class="modal-title">
-          <i class="fas fa-plus-circle mr-2"></i>
-          Tambah Anak
-        </h5>
-
-        <button type="button"
-                class="close text-white"
-                data-dismiss="modal">
-
-          <span>&times;</span>
-
-        </button>
-
-      </div>
-
-      <form method="POST">
-
-        <div class="modal-body">
-
-          <div class="row">
-
-            <div class="col-md-6">
-
-              <div class="form-group">
-                <label>Keluarga</label>
-
-                <select name="id_keluarga"
-                        class="custom-select"
-                        required>
-
-                  <option value="">-- Pilih Keluarga --</option>
-
-                  <?php foreach($keluarga as $k): ?>
-
-                  <option value="<?= $k['id'] ?>">
-                    <?= $k['nama_kepala_keluarga'] ?>
-                  </option>
-
-                  <?php endforeach; ?>
-
-                </select>
-
-              </div>
-
-            </div>
-
-            <div class="col-md-6">
-
-              <div class="form-group">
-                <label>NIK Anak</label>
-
-                <input type="text"
-                       name="nik"
-                       class="form-control">
-              </div>
-
-            </div>
-
-          </div>
-
-          <div class="form-group">
-            <label>Nama Anak</label>
-
-            <input type="text"
-                   name="nama"
-                   class="form-control"
-                   required>
-          </div>
-
-          <div class="row">
-
-            <div class="col-md-6">
-
-              <div class="form-group">
-                <label>Tempat Lahir</label>
-
-                <input type="text"
-                       name="tempat_lahir"
-                       class="form-control">
-              </div>
-
-            </div>
-
-            <div class="col-md-6">
-
-              <div class="form-group">
-                <label>Tanggal Lahir</label>
-
-                <input type="date"
-                       name="tanggal_lahir"
-                       class="form-control">
-              </div>
-
-            </div>
-
-          </div>
-
-          <div class="row">
-
-            <div class="col-md-4">
-
-              <div class="form-group">
-                <label>Jenis Kelamin</label>
-
-                <select name="jenis_kelamin"
-                        class="custom-select">
-
-                  <option value="L">Laki-laki</option>
-                  <option value="P">Perempuan</option>
-
-                </select>
-
-              </div>
-
-            </div>
-
-            <div class="col-md-4">
-
-              <div class="form-group">
-                <label>Anak Ke</label>
-
-                <input type="number"
-                       name="anak_ke"
-                       class="form-control">
-              </div>
-
-            </div>
-
-            <div class="col-md-4">
-
-              <div class="form-group">
-                <label>Status</label>
-
-                <select name="status"
-                        class="custom-select">
-
-                  <option value="aktif">Aktif</option>
-                  <option value="pindah">Pindah</option>
-                  <option value="meninggal">Meninggal</option>
-
-                </select>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          <div class="row">
-
-            <div class="col-md-6">
-
-              <div class="form-group">
-                <label>Berat Lahir</label>
-
-                <input type="number"
-                       step="0.01"
-                       name="berat_lahir"
-                       class="form-control">
-              </div>
-
-            </div>
-
-            <div class="col-md-6">
-
-              <div class="form-group">
-                <label>Panjang Lahir</label>
-
-                <input type="number"
-                       step="0.01"
-                       name="panjang_lahir"
-                       class="form-control">
-              </div>
-
-            </div>
-
-          </div>
-
-          <div class="row">
-
-            <div class="col-md-6">
-
-              <div class="form-group">
-                <label>Nama Ayah</label>
-
-                <input type="text"
-                       name="nama_ayah"
-                       class="form-control">
-              </div>
-
-            </div>
-
-            <div class="col-md-6">
-
-              <div class="form-group">
-                <label>Nama Ibu</label>
-
-                <input type="text"
-                       name="nama_ibu"
-                       class="form-control">
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="modal-footer">
-
-          <button type="button"
-                  class="btn btn-light"
-                  data-dismiss="modal">
-
-            Batal
-
-          </button>
-
-          <button type="submit"
-                  name="simpan"
-                  class="btn btn-primary">
-
-            <i class="fas fa-save mr-1"></i>
-            Simpan
-
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
-
-  </div>
-
-</div>
 
 <script>
 

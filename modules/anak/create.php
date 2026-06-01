@@ -6,64 +6,74 @@ require_once __DIR__ . '/../../config/database.php';
 // ==========================
 if (isset($_POST['simpan'])) {
 
-  $stmt = $pdo->prepare("
-    INSERT INTO anak
-    (
-      id_keluarga,
-      nik,
-      nama,
-      tempat_lahir,
-      tanggal_lahir,
-      jenis_kelamin,
-      anak_ke,
-      berat_lahir,
-      panjang_lahir,
-      nama_ayah,
-      nama_ibu,
-      status
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  ");
+    // Ambil data keluarga
+    $qKeluarga = $pdo->prepare("
+        SELECT nama_ayah, nama_ibu
+        FROM keluarga
+        WHERE id = ?
+    ");
 
-  $stmt->execute([
+    $qKeluarga->execute([
+        $_POST['id_keluarga']
+    ]);
 
-    $_POST['id_keluarga'] ?? '',
-    $_POST['nik'] ?? '',
-    $_POST['nama'] ?? '',
-    $_POST['tempat_lahir'] ?? '',
-    $_POST['tanggal_lahir'] ?? '',
-    $_POST['jenis_kelamin'] ?? '',
-    $_POST['anak_ke'] ?? '',
-    $_POST['berat_lahir'] ?? '',
-    $_POST['panjang_lahir'] ?? '',
-    $_POST['nama_ayah'] ?? '',
-    $_POST['nama_ibu'] ?? '',
-    $_POST['status'] ?? 'aktif'
+    $kel = $qKeluarga->fetch(PDO::FETCH_ASSOC);
 
-  ]);
+    $stmt = $pdo->prepare("
+        INSERT INTO anak
+        (
+            id_keluarga,
+            nik,
+            nama,
+            tempat_lahir,
+            tanggal_lahir,
+            jenis_kelamin,
+            anak_ke,
+            berat_lahir,
+            panjang_lahir,
+            nama_ayah,
+            nama_ibu,
+            status
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
 
-  echo "
-  <script>
+    $stmt->execute([
 
-    alert('Data anak berhasil ditambahkan');
+        $_POST['id_keluarga'],
+        $_POST['nik'] ?: null,
+        $_POST['nama'],
+        $_POST['tempat_lahir'] ?: null,
+        $_POST['tanggal_lahir'] ?: null,
+        $_POST['jenis_kelamin'] ?: null,
+        $_POST['anak_ke'] ?: null,
+        $_POST['berat_lahir'] ?: null,
+        $_POST['panjang_lahir'] ?: null,
 
-    window.parent.location='index.php?url=anak';
+        $kel['nama_ayah'] ?? null,
+        $kel['nama_ibu'] ?? null,
 
-  </script>
-  ";
+        $_POST['status'] ?? 'aktif'
+    ]);
 
-  exit;
+    echo "
+    <script>
+        alert('Data anak berhasil ditambahkan');
+        window.parent.location='index.php?url=anak';
+    </script>
+    ";
+
+    exit;
 }
 
 // ==========================
 // DATA KELUARGA
 // ==========================
 $keluarga = $pdo->query("
-  SELECT *
-  FROM keluarga
-  ORDER BY nama_kepala_keluarga ASC
+    SELECT *
+    FROM keluarga
+    ORDER BY nama_kepala_keluarga ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <!DOCTYPE html>
@@ -350,39 +360,39 @@ label{
 
     </div>
 
-    <div class="row">
+   <div class="row">
 
-      <div class="col-md-6">
+  <div class="col-md-6">
 
-        <div class="form-group">
+    <div class="form-group">
 
-          <label>Nama Ayah</label>
+      <label>Nama Ayah</label>
 
-          <input
-            type="text"
-            name="nama_ayah"
-            class="form-control">
-
-        </div>
-
-      </div>
-
-      <div class="col-md-6">
-
-        <div class="form-group">
-
-          <label>Nama Ibu</label>
-
-          <input
-            type="text"
-            name="nama_ibu"
-            class="form-control">
-
-        </div>
-
-      </div>
+      <input
+        type="text"
+        name="nama_ayah"
+        class="form-control">
 
     </div>
+
+  </div>
+
+  <div class="col-md-6">
+
+    <div class="form-group">
+
+      <label>Nama Ibu</label>
+
+      <input
+        type="text"
+        name="nama_ibu"
+        class="form-control">
+
+    </div>
+
+  </div>
+
+</div>
 
     <div class="text-right mt-4">
 
