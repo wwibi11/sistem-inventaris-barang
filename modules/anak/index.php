@@ -2,23 +2,6 @@
 require_once __DIR__ . '/../../config/database.php';
 
 // ==========================
-// HAPUS
-// ==========================
-if (isset($_GET['hapus'])) {
-
-  $stmt = $pdo->prepare("DELETE FROM anak WHERE id=?");
-  $stmt->execute([$_GET['hapus']]);
-
-  echo "
-  <script>
-    alert('Data berhasil dihapus');
-    location='index.php?url=anak';
-  </script>
-  ";
-}
-
-
-// ==========================
 // DATA ANAK
 // ==========================
 $data = $pdo->query("
@@ -304,8 +287,18 @@ textarea.form-control{
 
                   </button>
 
+
+                  <button
+                      class="btn btn-warning btn-sm btn-icon mr-1"
+                      data-toggle="modal"
+                      data-target="#edit<?= $d['id'] ?>">
+
+                      <i class="fas fa-edit"></i>
+
+                  </button>
+
                   <!-- HAPUS -->
-                  <a href="index.php?url=anak&hapus=<?= $d['id'] ?>"
+                  <a href="index.php?url=anak-delete&id=<?= $d['id'] ?>"
                      class="btn btn-danger btn-sm btn-icon"
                      onclick="return confirm('Yakin hapus data?')">
 
@@ -424,6 +417,50 @@ textarea.form-control{
               </div>
 
             </div>
+
+
+            <!-- MODAL EDIT -->
+<div class="modal fade"
+     id="edit<?= $d['id'] ?>"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-xl">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    <i class="fas fa-edit mr-2"></i>
+                    Edit Data Anak
+                </h5>
+
+                <button type="button"
+                        class="close text-white"
+                        data-dismiss="modal">
+
+                    <span>&times;</span>
+
+                </button>
+
+            </div>
+
+            <div class="modal-body p-0">
+
+                <iframe
+                    src="index.php?url=anak-edit&id=<?= $d['id'] ?>"
+                    width="100%"
+                    height="700"
+                    frameborder="0">
+                </iframe>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
             <?php endforeach; ?>
 

@@ -183,6 +183,7 @@ label{
           <label>Keluarga</label>
 
           <select
+            id="id_keluarga"
             name="id_keluarga"
             class="custom-select"
             required>
@@ -193,15 +194,17 @@ label{
 
             <?php foreach($keluarga as $k): ?>
 
-            <option
-              value="<?= $k['id'] ?>"
-              <?= $data['id_keluarga'] == $k['id'] ? 'selected' : '' ?>>
+              <option
+                  value="<?= $k['id'] ?>"
+                  data-ayah="<?= htmlspecialchars($k['nama_ayah']) ?>"
+                  data-ibu="<?= htmlspecialchars($k['nama_ibu']) ?>"
+                  <?= $data['id_keluarga'] == $k['id'] ? 'selected' : '' ?>>
 
-              <?= htmlspecialchars($k['nama_kepala_keluarga']) ?>
+                  <?= htmlspecialchars($k['nama_kepala_keluarga']) ?>
 
-            </option>
+              </option>
 
-            <?php endforeach; ?>
+              <?php endforeach; ?>
 
           </select>
 
@@ -406,41 +409,94 @@ label{
 
     </div>
 
-    <div class="row">
+    <div class="form-group">
 
-      <div class="col-md-6">
+    <label>Sumber Data Orang Tua</label>
 
-        <div class="form-group">
+    <div>
 
-          <label>Nama Ayah</label>
+        <div class="custom-control custom-radio custom-control-inline">
 
-          <input
-            type="text"
-            name="nama_ayah"
-            class="form-control"
-            value="<?= htmlspecialchars($data['nama_ayah']) ?>">
+            <input
+                type="radio"
+                id="pakai_kk"
+                name="sumber_orangtua"
+                value="kk"
+                class="custom-control-input"
+                checked>
 
-        </div>
+            <label
+                class="custom-control-label"
+                for="pakai_kk">
 
-      </div>
+                Sesuaikan Kartu Keluarga
 
-      <div class="col-md-6">
-
-        <div class="form-group">
-
-          <label>Nama Ibu</label>
-
-          <input
-            type="text"
-            name="nama_ibu"
-            class="form-control"
-            value="<?= htmlspecialchars($data['nama_ibu']) ?>">
+            </label>
 
         </div>
 
-      </div>
+        <div class="custom-control custom-radio custom-control-inline">
+
+            <input
+                type="radio"
+                id="manual"
+                name="sumber_orangtua"
+                value="manual"
+                class="custom-control-input">
+
+            <label
+                class="custom-control-label"
+                for="manual">
+
+                Input Manual
+
+            </label>
+
+        </div>
 
     </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6">
+
+        <div class="form-group">
+
+            <label>Nama Ayah</label>
+
+            <input
+                type="text"
+                id="nama_ayah"
+                name="nama_ayah"
+                class="form-control"
+                value="<?= htmlspecialchars($data['nama_ayah']) ?>"
+                readonly>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="form-group">
+
+            <label>Nama Ibu</label>
+
+            <input
+                type="text"
+                id="nama_ibu"
+                name="nama_ibu"
+                class="form-control"
+                value="<?= htmlspecialchars($data['nama_ibu']) ?>"
+                readonly>
+
+        </div>
+
+    </div>
+
+</div>
 
     <div class="text-right mt-4">
 
@@ -458,6 +514,55 @@ label{
   </form>
 
 </div>
+
+<script>
+
+const keluarga = document.getElementById('id_keluarga');
+const ayah     = document.getElementById('nama_ayah');
+const ibu      = document.getElementById('nama_ibu');
+
+function loadKK(){
+
+    let selected =
+        keluarga.options[keluarga.selectedIndex];
+
+    ayah.value = selected.dataset.ayah || '';
+    ibu.value  = selected.dataset.ibu  || '';
+}
+
+keluarga.addEventListener('change', function(){
+
+    if(document.getElementById('pakai_kk').checked){
+        loadKK();
+    }
+
+});
+
+document.getElementById('pakai_kk')
+.addEventListener('change', function(){
+
+    ayah.readOnly = true;
+    ibu.readOnly  = true;
+
+    loadKK();
+
+});
+
+document.getElementById('manual')
+.addEventListener('change', function(){
+
+    ayah.readOnly = false;
+    ibu.readOnly  = false;
+
+});
+
+window.onload = function(){
+
+    loadKK();
+
+};
+
+</script>
 
 </body>
 </html>
