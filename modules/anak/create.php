@@ -39,7 +39,6 @@ if (isset($_POST['simpan'])) {
     ");
 
     $stmt->execute([
-
         $_POST['id_keluarga'],
         $_POST['nik'] ?: null,
         $_POST['nama'],
@@ -49,10 +48,8 @@ if (isset($_POST['simpan'])) {
         $_POST['anak_ke'] ?: null,
         $_POST['berat_lahir'] ?: null,
         $_POST['panjang_lahir'] ?: null,
-
         $kel['nama_ayah'] ?? null,
         $kel['nama_ibu'] ?? null,
-
         $_POST['status'] ?? 'aktif'
     ]);
 
@@ -79,337 +76,261 @@ $keluarga = $pdo->query("
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Anak</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body {
+            background: #f4f6f9 !important;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-size: 14px;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
 
-<title>Tambah Anak</title>
+        /* Hilangkan template induk */
+        .sidebar, .main-sidebar, .left-side, .navbar,
+        .main-header, .content-header, .footer, .main-footer {
+            display: none !important;
+        }
 
-<link
-  rel="stylesheet"
-  href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        .content-wrapper, .main-content, #wrapper,
+        #content-wrapper, .content {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            min-height: auto !important;
+            background: transparent !important;
+        }
 
-<style>
+        /* Container */
+        .form-wrapper {
+            max-width: 1100px;
+            margin: 25px auto;
+            padding: 0 15px;
+        }
 
-html,
-body{
-  background:#fff !important;
-  margin:0;
-  padding:0;
-  overflow-x:hidden;
-  font-size:12px;
-  font-family:sans-serif;
-}
+        /* Card */
+        .form-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        }
 
-/* HILANGKAN TEMPLATE */
-.sidebar,
-.main-sidebar,
-.left-side,
-.navbar,
-.main-header,
-.content-header,
-.footer,
-.main-footer{
-  display:none !important;
-}
+        /* Form */
+        .form-group {
+            margin-bottom: 18px;
+        }
 
-/* FULL WIDTH */
-.content-wrapper,
-.main-content,
-#wrapper,
-#content-wrapper,
-.content{
-  margin:0 !important;
-  padding:0 !important;
-  width:100% !important;
-  min-height:auto !important;
-  background:#fff !important;
-}
+        label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+        }
 
-/* FORM */
-.form-wrapper{
-  padding:20px;
-}
+        .form-control, .custom-select {
+            height: 44px;
+            border-radius: 10px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+        }
 
-.form-control,
-.custom-select{
-  border-radius:8px;
-  font-size:12px;
-}
+        .form-control:focus, .custom-select:focus {
+            box-shadow: none;
+            border-color: #0d6efd;
+        }
 
-.btn{
-  border-radius:8px;
-  font-size:12px;
-}
+        input[readonly] {
+            background: #f8f9fa !important;
+        }
 
-label{
-  font-weight:600;
-  margin-bottom:6px;
-}
+        /* Radio */
+        .custom-control {
+            margin-right: 25px;
+        }
 
-</style>
+        /* Button */
+        .btn-primary {
+            border-radius: 10px;
+            padding: 10px 30px;
+            font-weight: 600;
+        }
 
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 20px;
+            }
+            .btn-primary {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
-
 <body>
 
 <div class="form-wrapper">
+    <div class="form-card">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Keluarga</label>
+                        <select id="id_keluarga" name="id_keluarga" class="custom-select" required>
+                            <option value="">-- Pilih Keluarga --</option>
+                            <?php foreach($keluarga as $k): ?>
+                            <option value="<?= $k['id'] ?>" data-ayah="<?= htmlspecialchars($k['nama_ayah']) ?>" data-ibu="<?= htmlspecialchars($k['nama_ibu']) ?>">
+                                <?= htmlspecialchars($k['nama_kepala_keluarga']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>NIK Anak</label>
+                        <input type="text" name="nik" class="form-control">
+                    </div>
+                </div>
+            </div>
 
-  <form method="POST">
+            <div class="form-group">
+                <label>Nama Anak</label>
+                <input type="text" name="nama" class="form-control" required>
+            </div>
 
-    <div class="row">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Tempat Lahir</label>
+                        <input type="text" name="tempat_lahir" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Tanggal Lahir</label>
+                        <input type="date" name="tanggal_lahir" class="form-control">
+                    </div>
+                </div>
+            </div>
 
-      <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Jenis Kelamin</label>
+                        <select name="jenis_kelamin" class="custom-select">
+                            <option value="L">Laki-laki</option>
+                            <option value="P">Perempuan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Anak Ke</label>
+                        <input type="number" name="anak_ke" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select name="status" class="custom-select">
+                            <option value="aktif">Aktif</option>
+                            <option value="pindah">Pindah</option>
+                            <option value="meninggal">Meninggal</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-        <div class="form-group">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Berat Lahir (Kg)</label>
+                        <input type="number" step="0.01" name="berat_lahir" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Panjang Lahir (Cm)</label>
+                        <input type="number" step="0.01" name="panjang_lahir" class="form-control">
+                    </div>
+                </div>
+            </div>
 
-          <label>Keluarga</label>
+            <div class="form-group">
+                <label>Sumber Data Orang Tua</label>
+                <div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="pakai_kk" name="sumber_orangtua" value="kk" class="custom-control-input" checked>
+                        <label class="custom-control-label" for="pakai_kk">Sesuaikan Kartu Keluarga</label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="manual" name="sumber_orangtua" value="manual" class="custom-control-input">
+                        <label class="custom-control-label" for="manual">Input Manual</label>
+                    </div>
+                </div>
+            </div>
 
-          <select
-            name="id_keluarga"
-            class="custom-select"
-            required>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Nama Ayah</label>
+                        <input type="text" id="nama_ayah" name="nama_ayah" class="form-control" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Nama Ibu</label>
+                        <input type="text" id="nama_ibu" name="nama_ibu" class="form-control" readonly>
+                    </div>
+                </div>
+            </div>
 
-            <option value="">
-              -- Pilih Keluarga --
-            </option>
-
-            <?php foreach($keluarga as $k): ?>
-
-            <option value="<?= $k['id'] ?>">
-
-              <?= htmlspecialchars($k['nama_kepala_keluarga']) ?>
-
-            </option>
-
-            <?php endforeach; ?>
-
-          </select>
-
-        </div>
-
-      </div>
-
-      <div class="col-md-6">
-
-        <div class="form-group">
-
-          <label>NIK Anak</label>
-
-          <input
-            type="text"
-            name="nik"
-            class="form-control">
-
-        </div>
-
-      </div>
-
+            <div class="text-right mt-4">
+                <button type="submit" name="simpan" class="btn btn-primary px-4">Simpan</button>
+            </div>
+        </form>
     </div>
-
-    <div class="form-group">
-
-      <label>Nama Anak</label>
-
-      <input
-        type="text"
-        name="nama"
-        class="form-control"
-        required>
-
-    </div>
-
-    <div class="row">
-
-      <div class="col-md-6">
-
-        <div class="form-group">
-
-          <label>Tempat Lahir</label>
-
-          <input
-            type="text"
-            name="tempat_lahir"
-            class="form-control">
-
-        </div>
-
-      </div>
-
-      <div class="col-md-6">
-
-        <div class="form-group">
-
-          <label>Tanggal Lahir</label>
-
-          <input
-            type="date"
-            name="tanggal_lahir"
-            class="form-control">
-
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="row">
-
-      <div class="col-md-4">
-
-        <div class="form-group">
-
-          <label>Jenis Kelamin</label>
-
-          <select
-            name="jenis_kelamin"
-            class="custom-select">
-
-            <option value="L">
-              Laki-laki
-            </option>
-
-            <option value="P">
-              Perempuan
-            </option>
-
-          </select>
-
-        </div>
-
-      </div>
-
-      <div class="col-md-4">
-
-        <div class="form-group">
-
-          <label>Anak Ke</label>
-
-          <input
-            type="number"
-            name="anak_ke"
-            class="form-control">
-
-        </div>
-
-      </div>
-
-      <div class="col-md-4">
-
-        <div class="form-group">
-
-          <label>Status</label>
-
-          <select
-            name="status"
-            class="custom-select">
-
-            <option value="aktif">
-              Aktif
-            </option>
-
-            <option value="pindah">
-              Pindah
-            </option>
-
-            <option value="meninggal">
-              Meninggal
-            </option>
-
-          </select>
-
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="row">
-
-      <div class="col-md-6">
-
-        <div class="form-group">
-
-          <label>Berat Lahir (Kg)</label>
-
-          <input
-            type="number"
-            step="0.01"
-            name="berat_lahir"
-            class="form-control">
-
-        </div>
-
-      </div>
-
-      <div class="col-md-6">
-
-        <div class="form-group">
-
-          <label>Panjang Lahir (Cm)</label>
-
-          <input
-            type="number"
-            step="0.01"
-            name="panjang_lahir"
-            class="form-control">
-
-        </div>
-
-      </div>
-
-    </div>
-
-   <div class="row">
-
-  <div class="col-md-6">
-
-    <div class="form-group">
-
-      <label>Nama Ayah</label>
-
-      <input
-        type="text"
-        name="nama_ayah"
-        class="form-control">
-
-    </div>
-
-  </div>
-
-  <div class="col-md-6">
-
-    <div class="form-group">
-
-      <label>Nama Ibu</label>
-
-      <input
-        type="text"
-        name="nama_ibu"
-        class="form-control">
-
-    </div>
-
-  </div>
-
 </div>
 
-    <div class="text-right mt-4">
+<script>
+    const keluarga = document.getElementById('id_keluarga');
+    const ayah = document.getElementById('nama_ayah');
+    const ibu = document.getElementById('nama_ibu');
 
-      <button
-        type="submit"
-        name="simpan"
-        class="btn btn-primary px-4">
+    function loadKK() {
+        let selected = keluarga.options[keluarga.selectedIndex];
+        ayah.value = selected.dataset.ayah || '';
+        ibu.value = selected.dataset.ibu || '';
+    }
 
-        Simpan
+    keluarga.addEventListener('change', function() {
+        if (document.getElementById('pakai_kk').checked) {
+            loadKK();
+        }
+    });
 
-      </button>
+    document.getElementById('pakai_kk').addEventListener('change', function() {
+        ayah.readOnly = true;
+        ibu.readOnly = true;
+        loadKK();
+    });
 
-    </div>
+    document.getElementById('manual').addEventListener('change', function() {
+        ayah.readOnly = false;
+        ibu.readOnly = false;
+        ayah.value = '';
+        ibu.value = '';
+    });
 
-  </form>
-
-</div>
+    window.onload = function() {
+        loadKK();
+    };
+</script>
 
 </body>
 </html>
