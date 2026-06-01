@@ -101,6 +101,57 @@ posyandu/
 
 ---
 
+## Instalasi
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/wwibi11/posyandu-native.git
+```
+
+### 2. Masuk ke Folder Project
+
+```bash
+cd posyandu
+```
+
+### 3. Import Database
+
+Import file:
+
+```text
+database/posyandu_db.sql
+```
+
+ke MariaDB atau MySQL.
+
+### 4. Konfigurasi Database
+
+Edit file:
+
+```php
+config/database.php
+```
+
+Sesuaikan konfigurasi:
+
+```php
+$host = "localhost";
+$dbname = "posyandu_db";
+$username = "root";
+$password = "";
+```
+
+### 5. Jalankan Project
+
+Jika menggunakan Laragon:
+
+```text
+http://posyandu.test
+```
+
+---
+
 ## Role Pengguna
 
 ### Admin
