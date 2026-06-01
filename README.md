@@ -131,6 +131,11 @@ posyandu/
 
 ---
 
-## Lisensi
+## Informasi Database
 
+File database (.sql) tidak disertakan langsung dalam repository.
+
+Jika diperlukan, silakan menghubungi pengembang untuk mendapatkan file database.
+
+## Lisensi
 Project ini dibuat untuk kebutuhan pembelajaran, penelitian, dan pengembangan Sistem Informasi Posyandu.
