@@ -1,44 +1,55 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
 
-$data = $pdo->query("SELECT * FROM kegiatan ORDER BY tanggal DESC")->fetchAll();
-
-if (isset($_POST['simpan'])) {
-  $stmt = $pdo->prepare("
-    INSERT INTO kegiatan (tanggal, lokasi, keterangan, pertemuan_ke, created_by)
-    VALUES (?, ?, ?, ?, ?)
-  ");
-  $stmt->execute([
-    $_POST['tanggal'],
-    $_POST['lokasi'],
-    $_POST['ket'],
-    $_POST['pertemuan'],
-    $_SESSION['user']['id']
-  ]);
-
-  header("Location: index.php?url=kegiatan");
-}
+$data = $pdo->query("
+  SELECT k.*, u.nama AS pembuat
+  FROM kegiatan k
+  LEFT JOIN users u ON u.id = k.created_by
+  ORDER BY k.tanggal DESC
+")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div class="container-fluid">
-  <h3>Kegiatan</h3>
 
-  <form method="POST" class="mb-4">
-    <input type="date" name="tanggal" class="form-control mb-2" required>
-    <input type="text" name="lokasi" class="form-control mb-2" placeholder="Lokasi">
-    <input type="number" name="pertemuan" class="form-control mb-2" placeholder="Pertemuan ke">
-    <textarea name="ket" class="form-control mb-2" placeholder="Keterangan"></textarea>
-    <button name="simpan" class="btn btn-primary">Simpan</button>
-  </form>
+  <div class="d-flex justify-content-between mb-3">
+    <h4>Kegiatan</h4>
 
-  <table class="table table-bordered">
-    <tr><th>Tanggal</th><th>Lokasi</th><th>Pertemuan</th></tr>
-    <?php foreach ($data as $d): ?>
-    <tr>
-      <td><?= $d['tanggal'] ?></td>
-      <td><?= $d['lokasi'] ?></td>
-      <td><?= $d['pertemuan_ke'] ?></td>
-    </tr>
-    <?php endforeach; ?>
+    <a href="index.php?url=kegiatan-create" class="btn btn-primary">
+      + Tambah
+    </a>
+  </div>
+
+  <table class="table table-bordered table-sm">
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Lokasi</th>
+        <th>Pertemuan</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <?php foreach ($data as $d): ?>
+        <tr>
+          <td><?= $d['tanggal'] ?></td>
+          <td><?= $d['lokasi'] ?></td>
+          <td><?= $d['pertemuan_ke'] ?></td>
+          <td><?= $d['status'] ?></td>
+          <td><?= $d['pembuat'] ?></td>
+          <td>
+            <a href="index.php?url=kegiatan-detail&id=<?= $d['id'] ?>" class="btn btn-info btn-sm">Detail</a>
+            <a href="index.php?url=kegiatan-edit&id=<?= $d['id'] ?>" class="btn btn-warning btn-sm">Edit</a>
+            <a href="index.php?url=kegiatan-delete&id=<?= $d['id'] ?>"
+               onclick="return confirm('Hapus?')"
+               class="btn btn-danger btn-sm">Hapus</a>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+    </tbody>
+
   </table>
+
 </div>
