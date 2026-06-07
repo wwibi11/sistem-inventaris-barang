@@ -1,55 +1,38 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
 
-$anak = $pdo->query("SELECT * FROM anak")->fetchAll();
-$kegiatan = $pdo->query("SELECT * FROM kegiatan")->fetchAll();
-
-if (isset($_POST['simpan'])) {
-  foreach ($_POST['hadir'] as $id_anak => $status) {
-    $stmt = $pdo->prepare("
-      INSERT INTO kehadiran (id_anak, id_kegiatan, status_hadir, dicatat_oleh)
-      VALUES (?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE status_hadir=VALUES(status_hadir)
-    ");
-
-    $stmt->execute([
-      $id_anak,
-      $_POST['kegiatan'],
-      $status,
-      $_SESSION['user']['id']
-    ]);
-  }
-
-  header("Location: index.php?url=kehadiran");
-}
+$data = $pdo->query("
+  SELECT *
+  FROM kegiatan
+  ORDER BY tanggal DESC
+")->fetchAll();
 ?>
 
 <div class="container-fluid">
-  <h3>Kehadiran</h3>
 
-  <form method="POST">
-    <select name="kegiatan" class="form-control mb-3">
-      <?php foreach ($kegiatan as $k): ?>
-      <option value="<?= $k['id'] ?>">
-        <?= $k['tanggal'] ?> - <?= $k['lokasi'] ?>
-      </option>
-      <?php endforeach; ?>
-    </select>
+  <h3>Kegiatan Posyandu</h3>
 
-    <table class="table">
-      <?php foreach ($anak as $a): ?>
-      <tr>
-        <td><?= $a['nama'] ?></td>
-        <td>
-          <select name="hadir[<?= $a['id'] ?>]" class="form-control">
-            <option value="hadir">Hadir</option>
-            <option value="tidak">Tidak</option>
-          </select>
-        </td>
-      </tr>
-      <?php endforeach; ?>
-    </table>
+  <table class="table table-bordered">
+    <tr>
+      <th>Tanggal</th>
+      <th>Lokasi</th>
+      <th>Status</th>
+      <th>Aksi</th>
+    </tr>
 
-    <button name="simpan" class="btn btn-primary">Simpan</button>
-  </form>
+    <?php foreach($data as $d): ?>
+    <tr>
+      <td><?= $d['tanggal'] ?></td>
+      <td><?= $d['lokasi'] ?></td>
+      <td><?= $d['status'] ?></td>
+      <td>
+        <a href="index.php?url=kegiatan-detail&id=<?= $d['id'] ?>"
+           class="btn btn-primary btn-sm">
+          Detail
+        </a>
+      </td>
+    </tr>
+    <?php endforeach; ?>
+  </table>
+
 </div>
