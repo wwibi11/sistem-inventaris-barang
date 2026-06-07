@@ -88,20 +88,24 @@ ORDER BY k.tanggal DESC
 
                     <hr>
 
-                    <div>
-                        Hadir :
-                        <strong><?= $d['total_hadir'] ?></strong>
-                    </div>
+                   <div class="row text-center mt-3">
 
-                    <div>
-                        Tidak Hadir :
-                        <strong><?= $d['total_tidak'] ?></strong>
-                    </div>
+                      <div class="col-4">
+                          <h5><?= $d['total_hadir'] ?></h5>
+                          <small>Hadir</small>
+                      </div>
 
-                    <div>
-                        Total Anak :
-                        <strong><?= $d['total_anak'] ?></strong>
-                    </div>
+                      <div class="col-4">
+                          <h5><?= $d['total_tidak'] ?></h5>
+                          <small>Tidak</small>
+                      </div>
+
+                      <div class="col-4">
+                          <h5><?= $d['total_anak'] ?></h5>
+                          <small>Anak</small>
+                      </div>
+
+                  </div>
 
                     <div class="mt-3">
 
@@ -122,11 +126,15 @@ ORDER BY k.tanggal DESC
                 <div class="card-footer bg-white border-0">
 
                     <a href="index.php?url=kegiatan-detail&id=<?= $d['id'] ?>"
-                       class="btn btn-primary btn-block">
+                      class="btn btn-primary btn-block">
 
-                        Input Kehadiran
+                        Kelola Kegiatan
 
                     </a>
+
+                    <small class="text-muted d-block text-center mt-2">
+                        Kehadiran • Pemeriksaan • Imunisasi
+                    </small>
 
                 </div>
 
