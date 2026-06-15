@@ -134,15 +134,6 @@ WHERE id_kegiatan=?
 $totalImunisasi->execute([$id_kegiatan]);
 $totalImunisasi = $totalImunisasi->fetchColumn();
 
-$totalValid = $pdo->prepare("
-SELECT COUNT(*)
-FROM pemeriksaan
-WHERE id_kegiatan=?
-AND status_validasi='valid'
-");
-
-$totalValid->execute([$id_kegiatan]);
-$totalValid = $totalValid->fetchColumn();
 
 $progress = 0;
 
@@ -223,42 +214,32 @@ if($totalHadir > 0){
 
     <div class="row mb-4">
 
-        <div class="col-md-3">
-            <div class="card border-left-primary shadow-sm">
-                <div class="card-body">
-                    <h4><?= $totalHadir ?></h4>
-                    <small>Hadir</small>
-                </div>
+    <div class="col-md-4">
+        <div class="card border-left-primary shadow-sm">
+            <div class="card-body">
+                <h4><?= $totalHadir ?></h4>
+                <small>Anak Hadir</small>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-3">
-            <div class="card border-left-success shadow-sm">
-                <div class="card-body">
-                    <h4><?= $totalPemeriksaan ?></h4>
-                    <small>Pemeriksaan</small>
-                </div>
+    <div class="col-md-4">
+        <div class="card border-left-success shadow-sm">
+            <div class="card-body">
+                <h4><?= $totalPemeriksaan ?></h4>
+                <small>Pemeriksaan</small>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-3">
-            <div class="card border-left-info shadow-sm">
-                <div class="card-body">
-                    <h4><?= $totalImunisasi ?></h4>
-                    <small>Imunisasi</small>
-                </div>
+    <div class="col-md-4">
+        <div class="card border-left-info shadow-sm">
+            <div class="card-body">
+                <h4><?= $totalImunisasi ?></h4>
+                <small>Imunisasi</small>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="card border-left-warning shadow-sm">
-                <div class="card-body">
-                    <h4><?= $totalValid ?></h4>
-                    <small>Validasi</small>
-                </div>
-            </div>
-        </div>
-
+    </div>
     </div>
 
     <!-- PROGRESS -->
@@ -388,65 +369,86 @@ if($totalHadir > 0){
 
         <div class="tab-pane fade" id="pemeriksaan">
 
-            <div class="alert alert-info">
-                Hanya anak yang hadir yang dapat diperiksa.
-            </div>
+    <div class="alert alert-info">
+        Hanya anak yang hadir yang dapat diperiksa.
+    </div>
 
-            <table class="table table-bordered">
+    <div class="mb-3 text-right">
 
-                <thead>
-                    <tr>
-                        <th>Nama Anak</th>
-                    </tr>
-                </thead>
+        <a href="index.php?url=pemeriksaan-input&id_kegiatan=<?= $id_kegiatan ?>"
+           class="btn btn-success">
 
-                <tbody>
+            Input Pemeriksaan
 
-                <?php foreach($anakHadir as $a): ?>
+        </a>
 
-                    <tr>
-                        <td><?= htmlspecialchars($a['nama']) ?></td>
-                    </tr>
+    </div>
 
-                <?php endforeach; ?>
+    <table class="table table-bordered">
 
-                </tbody>
+        <thead>
+            <tr>
+                <th>Nama Anak</th>
+            </tr>
+        </thead>
 
-            </table>
+        <tbody>
 
-        </div>
+        <?php foreach($anakHadir as $a): ?>
+
+            <tr>
+                <td><?= htmlspecialchars($a['nama']) ?></td>
+            </tr>
+
+        <?php endforeach; ?>
+
+        </tbody>
+
+    </table>
+
+</div>
 
         <!-- IMUNISASI -->
 
         <div class="tab-pane fade" id="imunisasi">
 
-            <div class="alert alert-info">
-                Hanya anak yang hadir yang dapat diimunisasi.
-            </div>
+    <div class="alert alert-info">
+        Hanya anak yang hadir yang dapat diimunisasi.
+    </div>
 
-            <table class="table table-bordered">
+    <div class="mb-3 text-right">
 
-                <thead>
-                    <tr>
-                        <th>Nama Anak</th>
-                    </tr>
-                </thead>
+        <a href="index.php?url=imunisasi-input&id_kegiatan=<?= $id_kegiatan ?>"
+           class="btn btn-primary">
 
-                <tbody>
+            Input Imunisasi
 
-                <?php foreach($anakHadir as $a): ?>
+        </a>
 
-                    <tr>
-                        <td><?= htmlspecialchars($a['nama']) ?></td>
-                    </tr>
+    </div>
 
-                <?php endforeach; ?>
+    <table class="table table-bordered">
 
-                </tbody>
+        <thead>
+            <tr>
+                <th>Nama Anak</th>
+            </tr>
+        </thead>
 
-            </table>
+        <tbody>
 
-        </div>
+        <?php foreach($anakHadir as $a): ?>
+
+            <tr>
+                <td><?= htmlspecialchars($a['nama']) ?></td>
+            </tr>
+
+        <?php endforeach; ?>
+        </tbody>
+
+    </table>
+
+</div>
 
     </div>
 

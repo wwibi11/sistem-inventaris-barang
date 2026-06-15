@@ -274,41 +274,49 @@ textarea.form-control{
 
               </td>
 
-              <td>
+             <td>
 
-                <div class="d-flex">
+            <div class="d-flex">
 
-                  <!-- VIEW -->
-                  <button class="btn btn-info btn-sm btn-icon mr-1"
-                          data-toggle="modal"
-                          data-target="#view<?= $d['id'] ?>">
+                <!-- VIEW -->
+                <button class="btn btn-info btn-sm btn-icon mr-1"
+                        data-toggle="modal"
+                        data-target="#view<?= $d['id'] ?>">
 
                     <i class="fas fa-eye"></i>
 
-                  </button>
+                </button>
 
+                <!-- DETAIL -->
+                <a href="index.php?url=anak-detail&id=<?= $d['id'] ?>"
+                  class="btn btn-primary btn-sm btn-icon mr-1">
 
-                  <button
-                      class="btn btn-warning btn-sm btn-icon mr-1"
-                      data-toggle="modal"
-                      data-target="#edit<?= $d['id'] ?>">
+                    <i class="fas fa-file-medical"></i>
 
-                      <i class="fas fa-edit"></i>
+                </a>
 
-                  </button>
+                <!-- EDIT -->
+                <button
+                    class="btn btn-warning btn-sm btn-icon mr-1"
+                    data-toggle="modal"
+                    data-target="#edit<?= $d['id'] ?>">
 
-                  <!-- HAPUS -->
-                  <a href="index.php?url=anak-delete&id=<?= $d['id'] ?>"
-                     class="btn btn-danger btn-sm btn-icon"
-                     onclick="return confirm('Yakin hapus data?')">
+                    <i class="fas fa-edit"></i>
+
+                </button>
+
+                <!-- HAPUS -->
+                <a href="index.php?url=anak-delete&id=<?= $d['id'] ?>"
+                  class="btn btn-danger btn-sm btn-icon"
+                  onclick="return confirm('Yakin hapus data?')">
 
                     <i class="fas fa-trash"></i>
 
-                  </a>
+                </a>
 
-                </div>
+            </div>
 
-              </td>
+        </td>
 
             </tr>
 

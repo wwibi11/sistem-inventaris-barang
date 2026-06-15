@@ -9,9 +9,9 @@ $id_kegiatan = $_GET['id_kegiatan'] ?? '';
 |--------------------------------------------------------------------------
 */
 $kegiatan = $pdo->query("
-SELECT *
-FROM kegiatan
-ORDER BY tanggal DESC
+    SELECT *
+    FROM kegiatan
+    ORDER BY tanggal DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 /*
@@ -24,23 +24,23 @@ $data = [];
 if ($id_kegiatan) {
 
     $stmt = $pdo->prepare("
-    SELECT
-        p.*,
-        a.nama,
-        a.tanggal_lahir,
-        u.nama AS petugas
+        SELECT
+            p.*,
+            a.nama,
+            a.tanggal_lahir,
+            u.nama AS petugas
 
-    FROM pemeriksaan p
+        FROM pemeriksaan p
 
-    JOIN anak a
-        ON a.id = p.id_anak
+        JOIN anak a
+            ON a.id = p.id_anak
 
-    LEFT JOIN users u
-        ON u.id = p.diukur_oleh
+        LEFT JOIN users u
+            ON u.id = p.diukur_oleh
 
-    WHERE p.id_kegiatan = ?
+        WHERE p.id_kegiatan = ?
 
-    ORDER BY a.nama ASC
+        ORDER BY a.nama ASC
     ");
 
     $stmt->execute([$id_kegiatan]);
@@ -54,14 +54,6 @@ if ($id_kegiatan) {
 |--------------------------------------------------------------------------
 */
 $totalPeriksa = count($data);
-
-$totalValid = 0;
-
-foreach($data as $d){
-    if($d['status_validasi'] == 'valid'){
-        $totalValid++;
-    }
-}
 
 ?>
 
@@ -143,34 +135,16 @@ foreach($data as $d){
 
     <div class="row mb-4">
 
-        <div class="col-md-6">
+        <div class="col-md-12">
 
-            <div class="card border-left-primary shadow-sm">
+            <div class="card shadow-sm border-left-primary">
 
                 <div class="card-body">
 
                     <h3><?= $totalPeriksa ?></h3>
 
-                    <small>
-                        Anak Sudah Diperiksa
-                    </small>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-md-6">
-
-            <div class="card border-left-success shadow-sm">
-
-                <div class="card-body">
-
-                    <h3><?= $totalValid ?></h3>
-
-                    <small>
-                        Sudah Divalidasi Bidan
+                    <small class="text-muted">
+                        Total Anak Sudah Diperiksa
                     </small>
 
                 </div>
@@ -185,15 +159,17 @@ foreach($data as $d){
 
         <div class="card-header bg-white">
 
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between align-items-center">
 
                 <h5 class="mb-0">
                     Data Pemeriksaan
                 </h5>
 
                 <a href="index.php?url=pemeriksaan-input&id_kegiatan=<?= $id_kegiatan ?>"
-                  class="btn btn-success btn-sm">
+                   class="btn btn-success btn-sm">
+
                     + Input Pemeriksaan
+
                 </a>
 
             </div>
@@ -202,94 +178,123 @@ foreach($data as $d){
 
         <div class="card-body p-0">
 
-            <table class="table table-bordered table-hover mb-0">
+            <div class="table-responsive">
 
-                <thead>
+                <table class="table table-bordered table-hover mb-0">
 
-                    <tr>
-                        <th>Nama Anak</th>
-                        <th>BB (kg)</th>
-                        <th>TB (cm)</th>
-                        <th>LK (cm)</th>
-                        <th>Status Gizi</th>
-                        <th>Validasi</th>
-                        <th>Petugas</th>
-                    </tr>
+                    <thead class="thead-light">
 
-                </thead>
+                        <tr>
+                            <th>Nama Anak</th>
+                            <th>BB (kg)</th>
+                            <th>TB (cm)</th>
+                            <th>LK (cm)</th>
+                            <th>Status Gizi</th>
+                            <th>Catatan</th>
+                            <th>Petugas</th>
+                            <th width="120">Aksi</th>
+                        </tr>
 
-                <tbody>
+                    </thead>
 
-                <?php if(count($data)): ?>
+                    <tbody>
 
-                    <?php foreach($data as $d): ?>
+                    <?php if(count($data)): ?>
 
-                    <tr>
+                        <?php foreach($data as $d): ?>
 
-                        <td>
-                            <?= htmlspecialchars($d['nama']) ?>
-                        </td>
+                        <?php
 
-                        <td>
-                            <?= $d['berat_badan'] ?>
-                        </td>
+                        $badge = 'secondary';
 
-                        <td>
-                            <?= $d['tinggi_badan'] ?>
-                        </td>
+                        if ($d['status_gizi'] == 'Baik') {
+                            $badge = 'success';
+                        } elseif ($d['status_gizi'] == 'Kurang') {
+                            $badge = 'warning';
+                        } elseif ($d['status_gizi'] == 'Buruk') {
+                            $badge = 'danger';
+                        }
 
-                        <td>
-                            <?= $d['lingkar_kepala'] ?>
-                        </td>
+                        ?>
 
-                        <td>
-                            <?= $d['status_gizi'] ?>
-                        </td>
+                        <tr>
 
-                        <td>
+                            <td>
 
-                            <?php if($d['status_validasi']=='valid'): ?>
+                                <strong>
+                                    <?= htmlspecialchars($d['nama']) ?>
+                                </strong>
 
-                                <span class="badge badge-success">
-                                    Valid
+                            </td>
+
+                            <td>
+                                <?= $d['berat_badan'] ?>
+                            </td>
+
+                            <td>
+                                <?= $d['tinggi_badan'] ?>
+                            </td>
+
+                            <td>
+                                <?= $d['lingkar_kepala'] ?>
+                            </td>
+
+                            <td>
+
+                                <span class="badge badge-<?= $badge ?>">
+                                    <?= htmlspecialchars($d['status_gizi']) ?>
                                 </span>
 
-                            <?php else: ?>
+                            </td>
 
-                                <span class="badge badge-warning">
-                                    Pending
-                                </span>
+                            <td>
+                                <?= htmlspecialchars($d['catatan'] ?? '-') ?>
+                            </td>
 
-                            <?php endif; ?>
+                            <td>
+                                <?= htmlspecialchars($d['petugas'] ?? '-') ?>
+                            </td>
 
-                        </td>
+                            <td>
 
-                        <td>
-                            <?= $d['petugas'] ?>
-                        </td>
+                                <a href="index.php?url=pemeriksaan-edit&id=<?= $d['id'] ?>"
+                                class="btn btn-warning btn-sm">
 
-                    </tr>
+                                    Edit
+                                </a>
 
-                    <?php endforeach; ?>
+                                <a href="index.php?url=pemeriksaan-delete&id=<?= $d['id'] ?>"
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Hapus data?')">
+                                    Hapus
+                                </a>
 
-                <?php else: ?>
+                            </td>
 
-                    <tr>
+                            </tr>
 
-                        <td colspan="7"
-                            class="text-center text-muted">
+                        <?php endforeach; ?>
 
-                            Belum ada data pemeriksaan.
+                    <?php else: ?>
 
-                        </td>
+                        <tr>
 
-                    </tr>
+                            <td colspan="7"
+                                class="text-center text-muted py-4">
 
-                <?php endif; ?>
+                                Belum ada data pemeriksaan untuk kegiatan ini.
 
-                </tbody>
+                            </td>
 
-            </table>
+                        </tr>
+
+                    <?php endif; ?>
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 
