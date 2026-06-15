@@ -22,23 +22,10 @@ $stmt = $pdo->prepare("
 $stmt->execute([$today]);
 $hadir_hari_ini = $stmt->fetchColumn();
 
-// =======================
-// PEMERIKSAAN HARI INI
-// =======================
-$stmt = $pdo->prepare("
-  SELECT COUNT(*) 
-  FROM pemeriksaan p
-  JOIN kegiatan g ON p.id_kegiatan = g.id
-  WHERE g.tanggal = ?
-");
-$stmt->execute([$today]);
-$pemeriksaan_hari_ini = $stmt->fetchColumn();
 
-// =======================
-// BELUM VALIDASI
-// =======================
-$pending = $pdo->query("
-  SELECT COUNT(*) FROM pemeriksaan WHERE status_validasi = 'pending'
+$total_pemeriksaan = $pdo->query("
+SELECT COUNT(*)
+FROM pemeriksaan
 ")->fetchColumn();
 
 // =======================
@@ -57,7 +44,32 @@ $anak = $pdo->query("
   JOIN keluarga k ON a.id_keluarga = k.id
   ORDER BY a.created_at DESC LIMIT 5
 ")->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+// =======================
+// GRAFIK KEGIATAN BULANAN
+// =======================
+$grafik = $pdo->query("
+SELECT
+    DATE_FORMAT(tanggal,'%b') AS bulan,
+    COUNT(*) AS total
+FROM kegiatan
+GROUP BY MONTH(tanggal)
+ORDER BY MONTH(tanggal)
+")->fetchAll(PDO::FETCH_ASSOC);
+
+$labelGrafik = [];
+$dataGrafik  = [];
+
+foreach($grafik as $g){
+    $labelGrafik[] = $g['bulan'];
+    $dataGrafik[]  = $g['total'];
+}
+
 ?>
+
+
 
 <div class="container-fluid">
 
@@ -110,26 +122,32 @@ $anak = $pdo->query("
       <div class="card shadow">
         <div class="card-body">
           <h6 class="font-weight-bold text-primary mb-3">
-            Pemeriksaan Hari Ini
+            Total Pemeriksaan
           </h6>
-          <h2><?= $pemeriksaan_hari_ini ?></h2>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6 mb-4">
-      <div class="card shadow">
-        <div class="card-body">
-          <h6 class="font-weight-bold text-danger mb-3">
-            Belum Validasi
-          </h6>
-          <h2><?= $pending ?></h2>
+          <h2><?= $total_pemeriksaan ?></h2>
         </div>
       </div>
     </div>
 
   </div>
 
+  <div class="card shadow mb-4">
+
+      <div class="card-header">
+
+          Grafik Kegiatan Posyandu
+
+      </div>
+
+      <div class="card-body">
+
+          <canvas id="grafikKegiatan"></canvas>
+
+      </div>
+
+  </div>
+
+  
   <!-- =======================
        TABEL DATA
   ======================== -->
@@ -198,3 +216,34 @@ $anak = $pdo->query("
   </div>
 
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+new Chart(
+    document.getElementById('grafikKegiatan'),
+    {
+        type:'bar',
+
+        data:{
+            labels: <?= json_encode($labelGrafik) ?>,
+
+            datasets:[{
+                label:'Jumlah Kegiatan',
+                data: <?= json_encode($dataGrafik) ?>,
+                borderWidth: 1
+            }]
+        },
+
+        options:{
+            responsive:true,
+            scales:{
+                y:{
+                    beginAtZero:true
+                }
+            }
+        }
+    }
+);
+
+</script>
