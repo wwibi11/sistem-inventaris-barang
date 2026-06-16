@@ -47,24 +47,35 @@ $anak = $pdo->query("
 
 
 
-// =======================
-// GRAFIK KEGIATAN BULANAN
-// =======================
 $grafik = $pdo->query("
 SELECT
-    DATE_FORMAT(tanggal,'%b') AS bulan,
+    DATE_FORMAT(g.tanggal,'%b %Y') AS bulan,
     COUNT(*) AS total
-FROM kegiatan
-GROUP BY MONTH(tanggal)
-ORDER BY MONTH(tanggal)
+
+FROM kehadiran h
+
+JOIN kegiatan g
+    ON g.id = h.id_kegiatan
+
+WHERE h.status_hadir = 'hadir'
+
+GROUP BY
+    YEAR(g.tanggal),
+    MONTH(g.tanggal)
+
+ORDER BY
+    YEAR(g.tanggal),
+    MONTH(g.tanggal)
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $labelGrafik = [];
 $dataGrafik  = [];
 
 foreach($grafik as $g){
+
     $labelGrafik[] = $g['bulan'];
     $dataGrafik[]  = $g['total'];
+
 }
 
 ?>
@@ -134,9 +145,7 @@ foreach($grafik as $g){
   <div class="card shadow mb-4">
 
       <div class="card-header">
-
-          Grafik Kegiatan Posyandu
-
+          Grafik Kehadiran Posyandu Bulanan
       </div>
 
       <div class="card-body">
@@ -218,31 +227,47 @@ foreach($grafik as $g){
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 
 new Chart(
     document.getElementById('grafikKegiatan'),
     {
-        type:'bar',
+        type: 'line',
 
-        data:{
+        data: {
+
             labels: <?= json_encode($labelGrafik) ?>,
 
-            datasets:[{
-                label:'Jumlah Kegiatan',
+            datasets: [{
+
+                label: 'Jumlah Kehadiran',
+
                 data: <?= json_encode($dataGrafik) ?>,
-                borderWidth: 1
+
+                fill: false,
+                tension: 0.3,
+                borderWidth: 3
+
             }]
+
         },
 
-        options:{
-            responsive:true,
-            scales:{
-                y:{
-                    beginAtZero:true
+        options: {
+
+            responsive: true,
+
+            scales: {
+
+                y: {
+                    beginAtZero: true
                 }
+
             }
+
         }
+
     }
 );
 

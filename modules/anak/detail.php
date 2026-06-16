@@ -159,7 +159,7 @@ $imunisasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <div class="container-fluid">
 
-    <div class="d-flex justify-content-between mb-4">
+   <div class="d-flex justify-content-between mb-4">
 
         <div>
 
@@ -173,12 +173,24 @@ $imunisasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         </div>
 
-        <a href="index.php?url=anak"
-           class="btn btn-secondary">
+        <div>
 
-            Kembali
+            <a href="index.php?url=anak-pertumbuhan&id=<?= $anak['id'] ?>"
+            class="btn btn-info">
 
-        </a>
+                <i class="fas fa-chart-line"></i>
+                Grafik Pertumbuhan
+
+            </a>
+
+            <a href="index.php?url=anak"
+            class="btn btn-secondary">
+
+                Kembali
+
+            </a>
+
+        </div>
 
     </div>
 
