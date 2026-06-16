@@ -3,57 +3,6 @@ require_once __DIR__ . '/../../config/database.php';
 
 /*
 |--------------------------------------------------------------------------
-| SIMPAN DATA
-|--------------------------------------------------------------------------
-*/
-if (isset($_POST['simpan'])) {
-
-    $stmt = $pdo->prepare("
-        INSERT INTO imunisasi
-        (
-            id_anak,
-            id_kegiatan,
-            jenis_imunisasi,
-            tanggal,
-            diberikan_oleh
-        )
-        VALUES
-        (
-            ?, ?, ?, ?, ?
-        )
-    ");
-
-    $stmt->execute([
-        $_POST['anak'],
-        $_POST['kegiatan'],
-        $_POST['jenis'],
-        $_POST['tanggal'],
-        $_SESSION['user']['id']
-    ]);
-
-    header("Location: index.php?url=imunisasi");
-    exit;
-}
-
-/*
-|--------------------------------------------------------------------------
-| DATA FORM
-|--------------------------------------------------------------------------
-*/
-$anak = $pdo->query("
-    SELECT *
-    FROM anak
-    ORDER BY nama ASC
-")->fetchAll(PDO::FETCH_ASSOC);
-
-$kegiatan = $pdo->query("
-    SELECT *
-    FROM kegiatan
-    ORDER BY tanggal DESC
-")->fetchAll(PDO::FETCH_ASSOC);
-
-/*
-|--------------------------------------------------------------------------
 | DATA IMUNISASI
 |--------------------------------------------------------------------------
 */
@@ -78,219 +27,359 @@ $data = $pdo->query("
     ORDER BY i.tanggal DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
+$total_imunisasi = count($data);
+
+$total_anak_imunisasi = $pdo->query("
+SELECT COUNT(DISTINCT id_anak)
+FROM imunisasi
+")->fetchColumn();
+
+$bulan_ini = $pdo->query("
+SELECT COUNT(*)
+FROM imunisasi
+WHERE MONTH(tanggal)=MONTH(CURDATE())
+AND YEAR(tanggal)=YEAR(CURDATE())
+")->fetchColumn();
+
 ?>
 
 <div class="container-fluid">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-        <div>
+    <div>
 
-            <h3 class="mb-1">
-                Imunisasi Anak
-            </h3>
+        <h3 class="mb-1">
+            Imunisasi Anak
+        </h3>
 
-            <small class="text-muted">
-                Pencatatan dan monitoring imunisasi
-            </small>
-
-        </div>
+        <small class="text-muted">
+            Monitoring dan pencatatan imunisasi balita
+        </small>
 
     </div>
 
-    <!-- FORM INPUT -->
+    <a href="index.php?url=imunisasi-input"
+       class="btn btn-primary">
 
-    <div class="card shadow-sm mb-4">
+        <i class="fas fa-plus"></i>
+        Tambah Imunisasi
 
-        <div class="card-header bg-primary text-white">
+    </a>
 
-            Input Imunisasi
+</div>
 
-        </div>
+<div class="row mb-4">
 
-        <div class="card-body">
+    <div class="col-md-4">
 
-            <form method="POST">
+        <div class="card border-left-primary shadow">
 
-                <div class="row">
+            <div class="card-body">
 
-                    <div class="col-md-6 mb-3">
+                <div class="row align-items-center">
 
-                        <label>Nama Anak</label>
+                    <div class="col">
 
-                        <select
-                            name="anak"
-                            class="form-control"
-                            required>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase">
 
-                            <option value="">
-                                Pilih Anak
-                            </option>
+                            Total Imunisasi
 
-                            <?php foreach($anak as $a): ?>
+                        </div>
 
-                                <option value="<?= $a['id'] ?>">
+                        <div class="h3 font-weight-bold">
 
-                                    <?= htmlspecialchars($a['nama']) ?>
+                            <?= $total_imunisasi ?>
 
-                                </option>
-
-                            <?php endforeach; ?>
-
-                        </select>
+                        </div>
 
                     </div>
 
-                    <div class="col-md-6 mb-3">
+                    <div class="col-auto">
 
-                        <label>Jenis Imunisasi</label>
-
-                        <select
-                            name="jenis"
-                            class="form-control"
-                            required>
-
-                            <option value="">
-                                Pilih Imunisasi
-                            </option>
-
-                            <option value="HB0">HB0</option>
-                            <option value="BCG">BCG</option>
-                            <option value="Polio">Polio</option>
-                            <option value="DPT-HB-Hib">DPT-HB-Hib</option>
-                            <option value="Campak">Campak</option>
-                            <option value="MR">MR</option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label>Tanggal Imunisasi</label>
-
-                        <input
-                            type="date"
-                            name="tanggal"
-                            class="form-control"
-                            required>
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label>Kegiatan Posyandu</label>
-
-                        <select
-                            name="kegiatan"
-                            class="form-control"
-                            required>
-
-                            <option value="">
-                                Pilih Kegiatan
-                            </option>
-
-                            <?php foreach($kegiatan as $k): ?>
-
-                                <option value="<?= $k['id'] ?>">
-
-                                    Pertemuan <?= $k['pertemuan_ke'] ?>
-                                    -
-                                    <?= date('d M Y', strtotime($k['tanggal'])) ?>
-
-                                </option>
-
-                            <?php endforeach; ?>
-
-                        </select>
+                        <i class="fas fa-syringe fa-2x text-gray-300"></i>
 
                     </div>
 
                 </div>
 
-                <button
-                    type="submit"
-                    name="simpan"
-                    class="btn btn-success">
-
-                    Simpan Imunisasi
-
-                </button>
-
-            </form>
+            </div>
 
         </div>
 
     </div>
 
-    <!-- DATA -->
+    <div class="col-md-4">
 
-    <div class="card shadow-sm">
+        <div class="card border-left-success shadow">
 
-        <div class="card-header bg-white">
+            <div class="card-body">
 
-            <h5 class="mb-0">
-                Riwayat Imunisasi
-            </h5>
+                <div class="row align-items-center">
+
+                    <div class="col">
+
+                        <div class="text-xs font-weight-bold text-success text-uppercase">
+
+                            Anak Diimunisasi
+
+                        </div>
+
+                        <div class="h3 font-weight-bold">
+
+                            <?= $total_anak_imunisasi ?>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-auto">
+
+                        <i class="fas fa-child fa-2x text-gray-300"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card-body p-0">
+    </div>
 
-            <div class="table-responsive">
+    <div class="col-md-4">
 
-                <table class="table table-bordered table-hover mb-0">
+        <div class="card border-left-info shadow">
 
-                    <thead class="thead-light">
+            <div class="card-body">
 
-                        <tr>
+                <div class="row align-items-center">
 
-                            <th>Nama Anak</th>
-                            <th>Jenis Imunisasi</th>
-                            <th>Tanggal</th>
-                            <th>Kegiatan</th>
-                            <th>Petugas</th>
-                            <th width="140">Aksi</th>
+                    <div class="col">
 
-                        </tr>
+                        <div class="text-xs font-weight-bold text-info text-uppercase">
 
-                    </thead>
+                            Bulan Ini
 
-                    <tbody>
+                        </div>
 
-                    <?php if(count($data)): ?>
+                        <div class="h3 font-weight-bold">
 
-                        <?php foreach($data as $d): ?>
+                            <?= $bulan_ini ?>
 
-                        <tr>
+                        </div>
 
-                            <td>
+                    </div>
+
+                    <div class="col-auto">
+
+                        <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow-sm mb-3">
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <div class="col-md-6">
+
+                <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Cari nama anak...">
+
+            </div>
+
+            <div class="col-md-3">
+
+                <select class="form-control">
+
+                    <option>Semua Imunisasi</option>
+                    <option>HB0</option>
+                    <option>BCG</option>
+                    <option>Polio</option>
+                    <option>DPT-HB-Hib</option>
+                    <option>Campak</option>
+                    <option>MR</option>
+
+                </select>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <button class="btn btn-primary btn-block">
+
+                    <i class="fas fa-search"></i>
+                    Cari
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <!-- DATA -->
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+        <h5 class="mb-0">
+
+            Riwayat Imunisasi Anak
+
+            <span class="badge badge-primary ml-2">
+
+                <?= $total_imunisasi ?>
+
+            </span>
+
+        </h5>
+
+    </div>
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover mb-0">
+
+                <thead class="thead-light">
+
+                    <tr>
+
+                        <th>Nama Anak</th>
+                        <th>Jenis Imunisasi</th>
+                        <th>Tanggal</th>
+                        <th>Kegiatan</th>
+                        <th>Petugas</th>
+                        <th width="160">Aksi</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                <?php if(count($data)): ?>
+
+                    <?php foreach($data as $d): ?>
+
+                    <?php
+
+                    $badge = 'primary';
+                    $namaImunisasi = $d['jenis_imunisasi'];
+
+                    switch($d['jenis_imunisasi']){
+
+                        case 'HB0':
+                            $badge = 'secondary';
+                            $namaImunisasi = 'Hepatitis B (HB0)';
+                            break;
+
+                        case 'BCG':
+                            $badge = 'success';
+                            $namaImunisasi = 'BCG (Tuberkulosis)';
+                            break;
+
+                        case 'Polio':
+                            $badge = 'info';
+                            $namaImunisasi = 'Polio';
+                            break;
+
+                        case 'DPT-HB-Hib':
+                            $badge = 'primary';
+                            $namaImunisasi = 'DPT-HB-Hib';
+                            break;
+
+                        case 'Campak':
+                            $badge = 'danger';
+                            $namaImunisasi = 'Campak';
+                            break;
+
+                        case 'MR':
+                            $badge = 'warning';
+                            $namaImunisasi = 'Measles Rubella (MR)';
+                            break;
+                    }
+
+                    ?>
+
+                    <tr>
+
+                        <td>
+
+                            <a href="index.php?url=anak-detail&id=<?= $d['id_anak'] ?>">
+
                                 <?= htmlspecialchars($d['nama_anak']) ?>
-                            </td>
 
-                            <td>
-                                <?= htmlspecialchars($d['jenis_imunisasi']) ?>
-                            </td>
+                            </a>
 
-                            <td>
-                                <?= date('d M Y', strtotime($d['tanggal'])) ?>
-                            </td>
+                        </td>
 
-                            <td>
-                                Pertemuan <?= $d['pertemuan_ke'] ?>
-                            </td>
+                        <td>
 
-                            <td>
-                                <?= htmlspecialchars($d['petugas'] ?? '-') ?>
-                            </td>
+                            <span class="badge badge-<?= $badge ?>">
 
-                            <td>
+                                <?= $namaImunisasi ?>
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <?= date('d M Y', strtotime($d['tanggal'])) ?>
+
+                        </td>
+
+                        <td>
+
+                            Pertemuan <?= $d['pertemuan_ke'] ?? '-' ?>
+
+                        </td>
+
+                        <td>
+
+                            <?= htmlspecialchars($d['petugas'] ?? '-') ?>
+
+                        </td>
+
+                        <td>
+
+                            <div class="btn-group">
+
+                                <a
+                                    href="index.php?url=anak-detail&id=<?= $d['id_anak'] ?>"
+                                    class="btn btn-info btn-sm">
+
+                                    <i class="fas fa-user"></i>
+
+                                </a>
 
                                 <a
                                     href="index.php?url=imunisasi-edit&id=<?= $d['id'] ?>"
                                     class="btn btn-warning btn-sm">
 
-                                    Edit
+                                    <i class="fas fa-edit"></i>
 
                                 </a>
 
@@ -299,39 +388,40 @@ $data = $pdo->query("
                                     class="btn btn-danger btn-sm"
                                     onclick="return confirm('Yakin hapus data?')">
 
-                                    Hapus
+                                    <i class="fas fa-trash"></i>
 
                                 </a>
 
-                            </td>
+                            </div>
 
-                        </tr>
+                        </td>
 
-                        <?php endforeach; ?>
+                    </tr>
 
-                    <?php else: ?>
+                    <?php endforeach; ?>
 
-                        <tr>
+                <?php else: ?>
 
-                            <td colspan="6"
-                                class="text-center text-muted py-4">
+                    <tr>
 
-                                Belum ada data imunisasi.
+                        <td colspan="6" class="text-center py-4">
 
-                            </td>
+                            Belum ada data imunisasi
 
-                        </tr>
+                        </td>
 
-                    <?php endif; ?>
+                    </tr>
 
-                    </tbody>
+                <?php endif; ?>
 
-                </table>
+                </tbody>
 
-            </div>
+            </table>
 
         </div>
 
     </div>
+
+</div>
 
 </div>

@@ -132,23 +132,29 @@ $riwayatPeriksa = $stmt->fetchAll(PDO::FETCH_ASSOC);
 |--------------------------------------------------------------------------
 */
 $stmt = $pdo->prepare("
-SELECT
-    i.*,
-    k.tanggal
+    SELECT
+        i.*,
+        k.tanggal AS tanggal_kegiatan,
+        k.pertemuan_ke,
+        u.nama AS petugas
 
-FROM imunisasi i
+    FROM imunisasi i
 
-JOIN kegiatan k
-    ON k.id = i.id_kegiatan
+    LEFT JOIN kegiatan k
+        ON k.id = i.id_kegiatan
 
-WHERE i.id_anak=?
+    LEFT JOIN users u
+        ON u.id = i.diberikan_oleh
 
-ORDER BY k.tanggal DESC
+    WHERE i.id_anak = ?
+
+    ORDER BY i.tanggal DESC
 ");
 
 $stmt->execute([$id]);
 
-$riwayatImunisasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$imunisasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <div class="container-fluid">
@@ -426,43 +432,128 @@ $riwayatImunisasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <!-- IMUNISASI -->
 
-        <div class="tab-pane fade"
-             id="imunisasi">
+       <!-- IMUNISASI -->
 
-            <table class="table table-bordered">
+<div class="tab-pane fade"
+     id="imunisasi">
 
-                <thead>
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-hover">
+
+            <thead>
 
                 <tr>
+
                     <th>Tanggal</th>
                     <th>Jenis Imunisasi</th>
+                    <th>Kegiatan</th>
+                    <th>Petugas</th>
+
                 </tr>
 
-                </thead>
+            </thead>
 
-                <tbody>
+            <tbody>
 
-                <?php foreach($riwayatImunisasi as $r): ?>
+            <?php if(count($imunisasi)): ?>
+
+                <?php foreach($imunisasi as $i): ?>
+
+                <?php
+
+                $badge = 'primary';
+                $namaImunisasi = $i['jenis_imunisasi'];
+
+                switch($i['jenis_imunisasi']){
+
+                    case 'HB0':
+                        $badge = 'secondary';
+                        $namaImunisasi = 'Hepatitis B (HB0)';
+                        break;
+
+                    case 'BCG':
+                        $badge = 'success';
+                        $namaImunisasi = 'BCG';
+                        break;
+
+                    case 'Polio':
+                        $badge = 'info';
+                        $namaImunisasi = 'Polio';
+                        break;
+
+                    case 'DPT-HB-Hib':
+                        $badge = 'primary';
+                        $namaImunisasi = 'DPT-HB-Hib';
+                        break;
+
+                    case 'Campak':
+                        $badge = 'danger';
+                        $namaImunisasi = 'Campak';
+                        break;
+
+                    case 'MR':
+                        $badge = 'warning';
+                        $namaImunisasi = 'Measles Rubella (MR)';
+                        break;
+                }
+
+                ?>
 
                 <tr>
 
                     <td>
-                        <?= date('d M Y', strtotime($r['tanggal'])) ?>
+                        <?= date('d M Y', strtotime($i['tanggal'])) ?>
                     </td>
 
                     <td>
-                        <?= htmlspecialchars($r['jenis_imunisasi']) ?>
+
+                        <span class="badge badge-<?= $badge ?>">
+
+                            <?= htmlspecialchars($namaImunisasi) ?>
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <?= $i['pertemuan_ke']
+                            ? 'Pertemuan '.$i['pertemuan_ke']
+                            : '-' ?>
+
+                    </td>
+
+                    <td>
+
+                        <?= htmlspecialchars($i['petugas'] ?? '-') ?>
+
                     </td>
 
                 </tr>
 
                 <?php endforeach; ?>
 
-                </tbody>
+            <?php else: ?>
 
-            </table>
+                <tr>
 
-        </div>
+                    <td colspan="4"
+                        class="text-center text-muted">
+
+                        Belum ada data imunisasi
+
+                    </td>
+
+                </tr>
+
+            <?php endif; ?>
+
+            </tbody>
+                
+          </table>
+
+         </div>
 
     </div>
 
