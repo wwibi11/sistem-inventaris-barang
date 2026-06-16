@@ -35,6 +35,7 @@ $role_access = [
         'kegiatan',
         'kehadiran',
         'pemeriksaan',
+        'laporan',
         'imunisasi'
     ],
 
@@ -45,6 +46,7 @@ $role_access = [
         'kegiatan',
         'kehadiran',
         'pemeriksaan',
+        'laporan',
         'imunisasi'
     ],
 ];

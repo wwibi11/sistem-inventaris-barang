@@ -74,6 +74,41 @@
     </a>
   </li>
 
+
+  <hr class="sidebar-divider">
+
+  <div class="sidebar-heading">
+    Laporan
+  </div>
+
+  <li class="nav-item">
+    <a class="nav-link" href="index.php?url=laporan-kehadiran">
+      <i class="fas fa-file-alt"></i>
+      <span>Laporan Kehadiran</span>
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link" href="index.php?url=laporan-pemeriksaan">
+      <i class="fas fa-file-medical"></i>
+      <span>Laporan Pemeriksaan</span>
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link" href="index.php?url=laporan-imunisasi">
+      <i class="fas fa-syringe"></i>
+      <span>Laporan Imunisasi</span>
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link" href="index.php?url=laporan-pertumbuhan">
+      <i class="fas fa-chart-line"></i>
+      <span>Laporan Pertumbuhan</span>
+    </a>
+  </li>
+
   <hr class="sidebar-divider">
 
   <!-- ADMIN -->

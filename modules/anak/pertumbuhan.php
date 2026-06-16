@@ -79,89 +79,52 @@ $terakhir = !empty($riwayat)
     ];
 ?>
 
+<?php
+
+$sebelumnya = count($riwayat) >= 2
+    ? $riwayat[count($riwayat)-2]
+    : null;
+
+$deltaBB = $sebelumnya
+    ? $terakhir['berat_badan'] - $sebelumnya['berat_badan']
+    : 0;
+
+$deltaTB = $sebelumnya
+    ? $terakhir['tinggi_badan'] - $sebelumnya['tinggi_badan']
+    : 0;
+
+$deltaLK = $sebelumnya
+    ? $terakhir['lingkar_kepala'] - $sebelumnya['lingkar_kepala']
+    : 0;
+?>
+
+
 <div class="container-fluid">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="row mb-4">
 
-        <div>
+    <div class="col-md-4">
 
-            <h3 class="mb-1">
-                Grafik Pertumbuhan Anak
-            </h3>
+        <div class="card border-left-primary shadow-sm">
 
-            <small class="text-muted">
-                <?= htmlspecialchars($anak['nama']) ?>
-            </small>
+            <div class="card-body">
 
-        </div>
+                <h3 class="mb-1">
+                    <?= $terakhir['berat_badan'] ?> Kg
+                </h3>
 
-        <a href="index.php?url=anak-detail&id=<?= $anak['id'] ?>"
-           class="btn btn-secondary">
+                <div class="small <?= $deltaBB >= 0 ? 'text-success' : 'text-danger' ?>">
 
-            <i class="fas fa-arrow-left"></i>
-            Kembali
+                    <i class="fas fa-arrow-<?= $deltaBB >= 0 ? 'up' : 'down' ?>"></i>
 
-        </a>
-
-    </div>
-
-    <div class="row mb-4">
-
-        <div class="col-md-4">
-
-            <div class="card border-left-primary shadow-sm">
-
-                <div class="card-body">
-
-                    <h4>
-                        <?= $terakhir['berat_badan'] ?> Kg
-                    </h4>
-
-                    <small>
-                        Berat Badan Terakhir
-                    </small>
+                    <?= $deltaBB >= 0 ? '+' : '' ?>
+                    <?= number_format($deltaBB, 1) ?> Kg
 
                 </div>
 
-            </div>
-
-        </div>
-
-        <div class="col-md-4">
-
-            <div class="card border-left-success shadow-sm">
-
-                <div class="card-body">
-
-                    <h4>
-                        <?= $terakhir['tinggi_badan'] ?> Cm
-                    </h4>
-
-                    <small>
-                        Tinggi Badan Terakhir
-                    </small>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-md-4">
-
-            <div class="card border-left-info shadow-sm">
-
-                <div class="card-body">
-
-                    <h4>
-                        <?= $terakhir['lingkar_kepala'] ?> Cm
-                    </h4>
-
-                    <small>
-                        Lingkar Kepala Terakhir
-                    </small>
-
-                </div>
+                <small class="text-muted">
+                    Berat Badan Terakhir
+                </small>
 
             </div>
 
@@ -169,21 +132,85 @@ $terakhir = !empty($riwayat)
 
     </div>
 
-    <div class="card shadow mb-4">
+    <div class="col-md-4">
 
-        <div class="card-header bg-primary text-white">
+        <div class="card border-left-success shadow-sm">
 
-            Grafik Pertumbuhan
+            <div class="card-body">
+
+                <h3 class="mb-1">
+                    <?= $terakhir['tinggi_badan'] ?> Cm
+                </h3>
+
+                <div class="small <?= $deltaTB >= 0 ? 'text-success' : 'text-danger' ?>">
+
+                    <i class="fas fa-arrow-<?= $deltaTB >= 0 ? 'up' : 'down' ?>"></i>
+
+                    <?= $deltaTB >= 0 ? '+' : '' ?>
+                    <?= number_format($deltaTB, 1) ?> Cm
+
+                </div>
+
+                <small class="text-muted">
+                    Tinggi Badan Terakhir
+                </small>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="card border-left-info shadow-sm">
+
+            <div class="card-body">
+
+                <h3 class="mb-1">
+                    <?= $terakhir['lingkar_kepala'] ?> Cm
+                </h3>
+
+                <div class="small <?= $deltaLK >= 0 ? 'text-success' : 'text-danger' ?>">
+
+                    <i class="fas fa-arrow-<?= $deltaLK >= 0 ? 'up' : 'down' ?>"></i>
+
+                    <?= $deltaLK >= 0 ? '+' : '' ?>
+                    <?= number_format($deltaLK, 1) ?> Cm
+
+                </div>
+
+                <small class="text-muted">
+                    Lingkar Kepala Terakhir
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card shadow mb-4">
+
+    <div class="card-header bg-primary text-white">
+
+        Grafik Pertumbuhan
+
+    </div>
+
+    <div class="card-body">
+
+        <div style="height:350px;">
 
             <canvas id="grafikPertumbuhan"></canvas>
 
         </div>
 
     </div>
+
+</div>
 
     <div class="card shadow">
 
@@ -280,25 +307,31 @@ new Chart(
         data:{
             labels: <?= json_encode($label) ?>,
 
-            datasets:[
-                {
-                    label:'Berat Badan (Kg)',
-                    data: <?= json_encode($bb) ?>,
-                    borderWidth:3,
-                    tension:0.3
-                },
-                {
-                    label:'Tinggi Badan (Cm)',
-                    data: <?= json_encode($tb) ?>,
-                    borderWidth:3,
-                    tension:0.3
-                },
-                {
-                    label:'Lingkar Kepala (Cm)',
-                    data: <?= json_encode($lk) ?>,
-                    borderWidth:3,
-                    tension:0.3
-                }
+          datasets: [
+            {
+                label:'Berat Badan (Kg)',
+                data: <?= json_encode($bb) ?>,
+                borderColor:'#007bff',
+                backgroundColor:'#007bff',
+                borderWidth:3,
+                tension:0.3
+            },
+            {
+                label:'Tinggi Badan (Cm)',
+                data: <?= json_encode($tb) ?>,
+                borderColor:'#28a745',
+                backgroundColor:'#28a745',
+                borderWidth:3,
+                tension:0.3
+            },
+            {
+                label:'Lingkar Kepala (Cm)',
+                data: <?= json_encode($lk) ?>,
+                borderColor:'#17a2b8',
+                backgroundColor:'#17a2b8',
+                borderWidth:3,
+                tension:0.3
+            }
             ]
         },
 
