@@ -75,39 +75,40 @@
   </li>
 
 
-  <hr class="sidebar-divider">
+ <!-- LAPORAN -->
+<hr class="sidebar-divider">
 
-  <div class="sidebar-heading">
-    Laporan
-  </div>
+<div class="sidebar-heading">
+  Laporan
+</div>
 
-  <li class="nav-item">
-    <a class="nav-link" href="index.php?url=laporan-kehadiran">
-      <i class="fas fa-file-alt"></i>
-      <span>Laporan Kehadiran</span>
-    </a>
-  </li>
+<li class="nav-item">
+  <a class="nav-link" href="index.php?url=laporan-kehadiran">
+    <i class="fas fa-clipboard-check"></i>
+    <span>Kehadiran</span>
+  </a>
+</li>
 
-  <li class="nav-item">
-    <a class="nav-link" href="index.php?url=laporan-pemeriksaan">
-      <i class="fas fa-file-medical"></i>
-      <span>Laporan Pemeriksaan</span>
-    </a>
-  </li>
+<li class="nav-item">
+  <a class="nav-link" href="index.php?url=laporan-pemeriksaan">
+    <i class="fas fa-file-medical"></i>
+    <span>Pemeriksaan</span>
+  </a>
+</li>
 
-  <li class="nav-item">
-    <a class="nav-link" href="index.php?url=laporan-imunisasi">
-      <i class="fas fa-syringe"></i>
-      <span>Laporan Imunisasi</span>
-    </a>
-  </li>
+<li class="nav-item">
+  <a class="nav-link" href="index.php?url=laporan-imunisasi">
+    <i class="fas fa-syringe"></i>
+    <span>Imunisasi</span>
+  </a>
+</li>
 
-  <li class="nav-item">
-    <a class="nav-link" href="index.php?url=laporan-pertumbuhan">
-      <i class="fas fa-chart-line"></i>
-      <span>Laporan Pertumbuhan</span>
-    </a>
-  </li>
+<li class="nav-item">
+  <a class="nav-link" href="index.php?url=laporan-statistik">
+    <i class="fas fa-chart-bar"></i>
+    <span>Statistik Posyandu</span>
+  </a>
+</li>
 
   <hr class="sidebar-divider">
 
