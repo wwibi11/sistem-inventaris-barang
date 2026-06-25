@@ -16,15 +16,9 @@ SELECT
     g.lokasi,
     a.nama,
     h.status_hadir
-
 FROM kehadiran h
-
-JOIN anak a
-    ON a.id = h.id_anak
-
-JOIN kegiatan g
-    ON g.id = h.id_kegiatan
-
+JOIN anak a ON a.id = h.id_anak
+JOIN kegiatan g ON g.id = h.id_kegiatan
 WHERE 1=1
 ";
 
@@ -40,251 +34,393 @@ if ($tanggal_akhir != '') {
     $params[] = $tanggal_akhir;
 }
 
-$sql .= "
-ORDER BY g.tanggal DESC,
-         a.nama ASC
-";
+$sql .= " ORDER BY g.tanggal DESC, a.nama ASC";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
-
 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $total = count($data);
+
+// Hitung statistik
+$totalHadir = 0;
+$totalTidak = 0;
+foreach($data as $d) {
+    if($d['status_hadir'] == 'hadir') $totalHadir++;
+    else $totalTidak++;
+}
 ?>
 
-<div class="container-fluid">
+<style>
+.laporan-kehadiran-container { padding: 10px 0; }
 
-```
-<div class="d-flex justify-content-between align-items-center mb-4">
+/* Header */
+.laporan-kehadiran-header {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
 
-    <div>
+.laporan-kehadiran-header .header-left h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a2634;
+    margin: 0;
+}
 
-        <h3 class="mb-1">
-            Laporan Kehadiran
-        </h3>
+.laporan-kehadiran-header .header-left h4 i {
+    color: #2c6b9e;
+    margin-right: 10px;
+}
 
-        <small class="text-muted">
-            Rekap kehadiran anak pada kegiatan Posyandu
-        </small>
+.laporan-kehadiran-header .header-left .sub-title {
+    font-size: 13px;
+    color: #8a94a6;
+    margin-top: 2px;
+}
 
-    </div>
+.btn-cetak-kehadiran {
+    background: #28a745;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-    <button
-        onclick="window.print()"
-        class="btn btn-success">
+.btn-cetak-kehadiran:hover {
+    background: #1e7e34;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.25);
+}
 
-        <i class="fas fa-print"></i>
-        Cetak
+/* Filter Card */
+.card-filter-kehadiran {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-bottom: 24px;
+}
 
-    </button>
+.card-filter-kehadiran .card-body {
+    padding: 18px 22px;
+}
 
-</div>
+.card-filter-kehadiran .form-control {
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 13px;
+    padding: 10px 14px;
+    height: 42px;
+    background: #fafbfc;
+    transition: all 0.2s ease;
+}
 
-<div class="card shadow-sm mb-4">
+.card-filter-kehadiran .form-control:focus {
+    border-color: #2c6b9e;
+    box-shadow: 0 0 0 3px rgba(44, 107, 158, 0.1);
+    background: #ffffff;
+}
 
-    <div class="card-body">
+.card-filter-kehadiran label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
 
-        <form method="GET">
+.btn-filter-kehadiran {
+    background: #2c6b9e;
+    color: #ffffff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
 
-            <input
-                type="hidden"
-                name="url"
-                value="laporan-kehadiran">
+.btn-filter-kehadiran:hover {
+    background: #1f507a;
+    color: #ffffff;
+}
 
-            <div class="row">
+.btn-reset-kehadiran {
+    background: #f0f4f8;
+    color: #4a5568;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
 
-                <div class="col-md-4">
+.btn-reset-kehadiran:hover {
+    background: #e2e8f0;
+    color: #1a2634;
+    text-decoration: none;
+}
 
-                    <label>
-                        Tanggal Awal
-                    </label>
+/* Stat Mini */
+.stat-mini-kehadiran-laporan {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
 
-                    <input
-                        type="date"
-                        name="tanggal_awal"
-                        value="<?= $tanggal_awal ?>"
-                        class="form-control">
+.stat-mini-kehadiran-laporan.hadir {
+    background: #d1fae5;
+    color: #047857;
+}
 
-                </div>
+.stat-mini-kehadiran-laporan.tidak {
+    background: #fee2e2;
+    color: #b91c1c;
+}
 
-                <div class="col-md-4">
+/* Card Tabel */
+.card-laporan-kehadiran {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
 
-                    <label>
-                        Tanggal Akhir
-                    </label>
+.card-laporan-kehadiran .card-header-custom {
+    padding: 14px 20px;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #f8f9fc;
+}
 
-                    <input
-                        type="date"
-                        name="tanggal_akhir"
-                        value="<?= $tanggal_akhir ?>"
-                        class="form-control">
+.card-laporan-kehadiran .card-header-custom h6 {
+    font-weight: 600;
+    color: #1a2634;
+    margin: 0;
+    font-size: 14px;
+}
 
-                </div>
+.card-laporan-kehadiran .card-header-custom h6 i {
+    color: #2c6b9e;
+    margin-right: 8px;
+}
 
-                <div class="col-md-4 d-flex align-items-end">
+.card-laporan-kehadiran .card-header-custom .badge-count {
+    background: #e8f0fe;
+    color: #2c6b9e;
+    padding: 2px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
 
-                    <button
-                        type="submit"
-                        class="btn btn-primary mr-2">
+/* Tabel */
+.table-laporan-kehadiran {
+    font-size: 13px;
+    margin: 0;
+}
 
-                        <i class="fas fa-search"></i>
-                        Tampilkan
+.table-laporan-kehadiran thead th {
+    background: #f8f9fc;
+    color: #4a5568;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 10px 14px;
+    border-bottom: 2px solid #edf2f7;
+}
 
-                    </button>
+.table-laporan-kehadiran tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f2f5;
+    vertical-align: middle;
+}
 
-                    <a
-                        href="index.php?url=laporan-kehadiran"
-                        class="btn btn-secondary">
+.table-laporan-kehadiran tbody tr:hover {
+    background: #fafbfc;
+}
 
-                        Reset
+.badge-status-kehadiran {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
 
-                    </a>
+.badge-status-kehadiran.hadir {
+    background: #d1fae5;
+    color: #047857;
+}
 
-                </div>
+.badge-status-kehadiran.tidak {
+    background: #fee2e2;
+    color: #b91c1c;
+}
 
+.empty-state-kehadiran {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state-kehadiran i {
+    font-size: 48px;
+    color: #d1d5db;
+    margin-bottom: 12px;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .laporan-kehadiran-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+    }
+    .btn-cetak-kehadiran {
+        justify-content: center;
+    }
+}
+
+@media print {
+    .btn-cetak-kehadiran { display: none; }
+    .card-filter-kehadiran { display: none; }
+    .laporan-kehadiran-header { box-shadow: none; border: 1px solid #ddd; }
+    .card-laporan-kehadiran { border: 1px solid #ddd; box-shadow: none; }
+    .table-laporan-kehadiran thead th { background: #f0f0f0 !important; }
+}
+</style>
+
+<div class="laporan-kehadiran-container">
+
+    <!-- HEADER -->
+    <div class="laporan-kehadiran-header">
+        <div class="header-left">
+            <h4>
+                <i class="fas fa-user-check"></i>
+                Laporan Kehadiran
+            </h4>
+            <div class="sub-title">
+                <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                Rekap kehadiran anak pada kegiatan Posyandu Bougenvil Belik
             </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-<div class="card shadow">
-
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-
-        <h5 class="mb-0">
-
-            Data Kehadiran
-
-            <span class="badge badge-primary ml-2">
-
-                <?= $total ?>
-
-            </span>
-
-        </h5>
-
-    </div>
-
-    <div class="card-body p-0">
-
-        <div class="table-responsive">
-
-            <table class="table table-bordered table-hover mb-0">
-
-                <thead class="thead-light">
-
-                    <tr>
-
-                        <th width="140">
-                            Tanggal
-                        </th>
-
-                        <th width="120">
-                            Pertemuan
-                        </th>
-
-                        <th>
-                            Nama Anak
-                        </th>
-
-                        <th>
-                            Lokasi
-                        </th>
-
-                        <th width="120">
-                            Status
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                <?php if(count($data)): ?>
-
-                    <?php foreach($data as $d): ?>
-
-                    <tr>
-
-                        <td>
-
-                            <?= date(
-                                'd M Y',
-                                strtotime($d['tanggal'])
-                            ) ?>
-
-                        </td>
-
-                        <td>
-
-                            Pertemuan
-                            <?= $d['pertemuan_ke'] ?>
-
-                        </td>
-
-                        <td>
-
-                            <?= htmlspecialchars($d['nama']) ?>
-
-                        </td>
-
-                        <td>
-
-                            <?= htmlspecialchars($d['lokasi']) ?>
-
-                        </td>
-
-                        <td>
-
-                            <?php if($d['status_hadir']=='hadir'): ?>
-
-                                <span class="badge badge-success">
-                                    Hadir
-                                </span>
-
-                            <?php else: ?>
-
-                                <span class="badge badge-danger">
-                                    Tidak Hadir
-                                </span>
-
-                            <?php endif; ?>
-
-                        </td>
-
-                    </tr>
-
-                    <?php endforeach; ?>
-
-                <?php else: ?>
-
-                    <tr>
-
-                        <td colspan="5"
-                            class="text-center py-4">
-
-                            Tidak ada data kehadiran
-
-                        </td>
-
-                    </tr>
-
-                <?php endif; ?>
-
-                </tbody>
-
-            </table>
-
         </div>
-
+        <button onclick="window.print()" class="btn-cetak-kehadiran">
+            <i class="fas fa-print"></i> Cetak Laporan
+        </button>
     </div>
 
-</div>
-```
+    <!-- FILTER -->
+    <div class="card-filter-kehadiran">
+        <div class="card-body">
+            <form method="GET">
+                <input type="hidden" name="url" value="laporan-kehadiran">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label>Tanggal Awal</label>
+                        <input type="date" name="tanggal_awal" value="<?= $tanggal_awal ?>" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label>Tanggal Akhir</label>
+                        <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="form-control">
+                    </div>
+                    <div class="col-md-4" style="display: flex; gap: 8px;">
+                        <button type="submit" class="btn-filter-kehadiran">
+                            <i class="fas fa-search"></i> Tampilkan
+                        </button>
+                        <a href="index.php?url=laporan-kehadiran" class="btn-reset-kehadiran">
+                            <i class="fas fa-undo"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card-laporan-kehadiran">
+        <div class="card-header-custom">
+            <h6>
+                <i class="fas fa-list"></i> Data Kehadiran
+                <span class="badge-count"><?= $total ?></span>
+                <?php if($total > 0): ?>
+                    <span class="stat-mini-kehadiran-laporan hadir">
+                        <i class="fas fa-check-circle"></i> <?= $totalHadir ?>
+                    </span>
+                    <span class="stat-mini-kehadiran-laporan tidak">
+                        <i class="fas fa-times-circle"></i> <?= $totalTidak ?>
+                    </span>
+                <?php endif; ?>
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-laporan-kehadiran">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Pertemuan</th>
+                            <th>Nama Anak</th>
+                            <th>Lokasi</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if($data): ?>
+                            <?php foreach($data as $d): ?>
+                            <tr>
+                                <td><?= date('d M Y', strtotime($d['tanggal'])) ?></td>
+                                <td>Pertemuan <?= $d['pertemuan_ke'] ?></td>
+                                <td><strong><?= htmlspecialchars($d['nama']) ?></strong></td>
+                                <td><?= htmlspecialchars($d['lokasi']) ?></td>
+                                <td>
+                                    <span class="badge-status-kehadiran <?= $d['status_hadir'] ?>">
+                                        <?= ucfirst($d['status_hadir']) ?>
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state-kehadiran">
+                                        <i class="fas fa-calendar-times"></i>
+                                        <h6>Tidak Ada Data Kehadiran</h6>
+                                        <p>Belum ada data kehadiran yang tercatat</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
 </div>
