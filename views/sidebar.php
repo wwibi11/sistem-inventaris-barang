@@ -56,6 +56,22 @@
         </a>
     </li>
 
+     <li class="nav-item">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'ibu_hamil' ? 'active' : '' ?>" 
+           href="index.php?url=ibu_hamil">
+            <i class="fa-solid fa-fw fa-person-pregnant"></i>
+            <span>Ibu Hamil</span>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'master_imunisasi' ? 'active' : '' ?>" 
+           href="index.php?url=master_imunisasi">
+            <i class="fas fa-fw fa-syringe"></i>
+            <span>Master Imunisasi</span>
+        </a>
+    </li>
+
     <hr class="sidebar-divider">
 
     <!-- ======================== -->
