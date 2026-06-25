@@ -95,6 +95,7 @@
         </a>
     </li>
 
+
     <hr class="sidebar-divider">
 
     <!-- ======================== -->
@@ -115,6 +116,14 @@
            href="index.php?url=imunisasi">
             <i class="fas fa-syringe"></i>
             <span>Imunisasi</span>
+        </a>
+    </li>
+
+     <li class="nav-item">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'pemeriksaan_ibu' ? 'active' : '' ?>" 
+           href="index.php?url=pemeriksaan_ibu">
+            <i class="fas fa-fw fa-stethoscope"></i>
+            <span>Pemeriksaan Ibu Hamil</span>
         </a>
     </li>
 
@@ -154,6 +163,15 @@
            href="index.php?url=laporan-statistik">
             <i class="fas fa-chart-bar"></i>
             <span>Statistik Posyandu</span>
+        </a>
+    </li>
+
+
+    <li class="nav-item">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-ibu-hamil' ? 'active' : '' ?>" 
+           href="index.php?url=laporan-ibu-hamil">
+            <i class="fas fa-fw fa-file-medical"></i>
+            <span>Ibu Hamil</span>
         </a>
     </li>
 
