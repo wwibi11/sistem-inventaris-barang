@@ -2,236 +2,238 @@
 require_once __DIR__ . '/../../config/database.php';
 
 if (isset($_POST['simpan'])) {
-
-   $stmt = $pdo->prepare("
-    INSERT INTO kegiatan
-    (
-        tanggal,
-        lokasi,
-        keterangan,
-        pertemuan_ke,
-        created_by
-    )
-    VALUES (?, ?, ?, ?, ?)
-");
-
+    $stmt = $pdo->prepare("
+        INSERT INTO kegiatan (tanggal, lokasi, keterangan, pertemuan_ke, created_by)
+        VALUES (?, ?, ?, ?, ?)
+    ");
     $stmt->execute([
-    $_POST['tanggal'],
-    $_POST['lokasi'],
-    $_POST['keterangan'],
-    $_POST['pertemuan_ke'],
-    $_SESSION['user']['id']
-]);
-
+        $_POST['tanggal'],
+        $_POST['lokasi'],
+        $_POST['keterangan'],
+        $_POST['pertemuan_ke'],
+        $_SESSION['user']['id']
+    ]);
     header("Location: index.php?url=kegiatan");
     exit;
 }
 ?>
 
 <style>
+.kegiatan-form-container { padding: 15px 0; }
 
-.page-header{
-    margin-bottom:20px;
+/* Header */
+.kegiatan-form-header {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
-.page-title{
-    font-size:24px;
-    font-weight:700;
-    color:#2e3a59;
+.kegiatan-form-header .header-left h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a2634;
+    margin: 0;
 }
 
-.page-subtitle{
-    color:#858796;
-    font-size:13px;
+.kegiatan-form-header .header-left h4 i {
+    color: #2c6b9e;
+    margin-right: 10px;
 }
 
-.card-modern{
-    border:none;
-    border-radius:18px;
-    overflow:hidden;
-    box-shadow:0 4px 15px rgba(0,0,0,.05);
+.kegiatan-form-header .header-left .sub-title {
+    font-size: 13px;
+    color: #8a94a6;
+    margin-top: 2px;
 }
 
-.card-header-modern{
-    background:linear-gradient(
-        135deg,
-        #4e73df,
-        #224abe
-    );
-    color:white;
-    padding:18px 25px;
+/* Card Form */
+.card-form {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
 }
 
-.form-label{
-    font-size:12px;
-    font-weight:600;
-    margin-bottom:6px;
-    color:#444;
+.card-form .card-header-custom {
+    padding: 14px 20px;
+    border-bottom: 1px solid #edf2f7;
+    font-weight: 600;
+    color: #1a2634;
+    font-size: 14px;
+    background: #f8f9fc;
 }
 
-.form-control,
-.custom-select{
-    border-radius:10px;
-    font-size:13px;
-    min-height:42px;
+.card-form .card-header-custom i {
+    color: #2c6b9e;
+    margin-right: 8px;
 }
 
-textarea.form-control{
-    min-height:120px;
+.card-form .card-body-custom {
+    padding: 20px 22px;
 }
 
-.alert-modern{
-    border:none;
-    border-radius:12px;
-    background:#eef4ff;
-    color:#2e3a59;
+.form-group label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 12px;
+    margin-bottom: 4px;
 }
 
-.btn{
-    border-radius:10px;
+.form-control, .custom-select {
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 13px;
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+    background: #fafbfc;
+    height: 44px;
 }
 
+.form-control:focus, .custom-select:focus {
+    border-color: #2c6b9e;
+    box-shadow: 0 0 0 3px rgba(44, 107, 158, 0.1);
+    background: #ffffff;
+}
+
+textarea.form-control {
+    height: auto;
+    min-height: 100px;
+}
+
+.btn {
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 24px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #2c6b9e;
+    border: none;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #1f507a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(44, 107, 158, 0.25);
+    color: #ffffff;
+}
+
+.btn-light {
+    background: #f0f4f8;
+    border: none;
+    color: #4a5568;
+}
+
+.btn-light:hover {
+    background: #e2e8f0;
+    color: #1a2634;
+}
+
+.alert-info-custom {
+    border-radius: 10px;
+    border: none;
+    background: #e8f0fe;
+    color: #1a2634;
+    padding: 14px 18px;
+    margin-top: 16px;
+}
+
+.alert-info-custom i {
+    color: #2c6b9e;
+    margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+    .kegiatan-form-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+    }
+}
 </style>
 
-<div class="container-fluid">
+<div class="kegiatan-form-container">
 
     <!-- HEADER -->
-    <div class="page-header">
-
-        <div class="page-title">
-            <i class="fas fa-calendar-plus text-primary mr-2"></i>
-            Tambah Kegiatan Posyandu
+    <div class="kegiatan-form-header">
+        <div class="header-left">
+            <h4>
+                <i class="fas fa-calendar-plus"></i>
+                Tambah Kegiatan Posyandu
+            </h4>
+            <div class="sub-title">
+                <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                Buat jadwal kegiatan baru di Posyandu Bougenvil Belik
+            </div>
         </div>
-
-        <div class="page-subtitle">
-            Buat jadwal kegiatan posyandu baru
+        <div>
+            <a href="index.php?url=kegiatan" class="btn btn-light">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
         </div>
-
     </div>
 
-    <form method="POST">
-
-        <div class="card card-modern">
-
-            <div class="card-header-modern">
-
-                <h5 class="mb-0">
-                    Informasi Kegiatan
-                </h5>
-
-            </div>
-
-            <div class="card-body">
-
+    <!-- FORM -->
+    <div class="card-form">
+        <div class="card-header-custom">
+            <i class="fas fa-info-circle"></i> Informasi Kegiatan
+        </div>
+        <div class="card-body-custom">
+            <form method="POST">
                 <div class="row">
-
-                    <!-- TANGGAL -->
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Tanggal Kegiatan
-                        </label>
-
-                        <input
-                            type="date"
-                            name="tanggal"
-                            class="form-control"
-                            required>
-
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Tanggal Kegiatan <span style="color: #dc2626;">*</span></label>
+                            <input type="date" name="tanggal" class="form-control" required>
+                        </div>
                     </div>
-
-                    <!-- LOKASI -->
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Lokasi Kegiatan
-                        </label>
-
-                        <input
-                            type="text"
-                            name="lokasi"
-                            class="form-control"
-                            placeholder="Contoh: Posyandu Melati"
-                            required>
-
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Pertemuan Ke <span style="color: #dc2626;">*</span></label>
+                            <input type="number" name="pertemuan_ke" class="form-control" placeholder="Contoh: 1" required>
+                        </div>
                     </div>
-
-                    <!-- PERTEMUAN -->
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-                            Pertemuan Ke
-                        </label>
-
-                        <input
-                            type="number"
-                            name="pertemuan_ke"
-                            class="form-control"
-                            placeholder="Contoh: 1">
-
-                    </div>
-
-                    <!-- KETERANGAN -->
-                    <div class="col-12">
-
-                        <label class="form-label">
-                            Keterangan
-                        </label>
-
-                        <textarea
-                            name="keterangan"
-                            class="form-control"
-                            placeholder="Masukkan keterangan kegiatan..."></textarea>
-
-                    </div>
-
                 </div>
 
-            </div>
+                <div class="form-group">
+                    <label>Lokasi Kegiatan <span style="color: #dc2626;">*</span></label>
+                    <input type="text" name="lokasi" class="form-control" placeholder="Contoh: Posyandu Bougenvil" required>
+                </div>
 
+                <div class="form-group">
+                    <label>Keterangan</label>
+                    <textarea name="keterangan" class="form-control" placeholder="Masukkan keterangan kegiatan..."></textarea>
+                </div>
+
+                <div class="alert-info-custom">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Informasi</strong>
+                    <br>
+                    Setelah kegiatan dibuat, pencatatan kehadiran, pemeriksaan, dan imunisasi dilakukan melalui halaman detail kegiatan.
+                </div>
+
+                <div class="text-right mt-4" style="border-top: 1px solid #edf2f7; padding-top: 20px;">
+                    <a href="index.php?url=kegiatan" class="btn btn-light mr-2">
+                        <i class="fas fa-times"></i> Batal
+                    </a>
+                    <button type="submit" name="simpan" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Simpan Kegiatan
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <!-- INFO -->
-        <div class="alert alert-modern mt-3">
-
-            <strong>
-                Informasi
-            </strong>
-
-            <br>
-
-            Setelah kegiatan dibuat,
-            pencatatan kehadiran,
-            pemeriksaan,
-            dan imunisasi dilakukan melalui
-            halaman detail kegiatan.
-
-        </div>
-
-        <!-- BUTTON -->
-        <div class="text-right mt-3">
-
-            <a
-                href="index.php?url=kegiatan"
-                class="btn btn-light">
-
-                <i class="fas fa-arrow-left mr-1"></i>
-                Batal
-
-            </a>
-
-            <button
-                type="submit"
-                name="simpan"
-                class="btn btn-primary">
-
-                <i class="fas fa-save mr-1"></i>
-                Simpan Kegiatan
-
-            </button>
-
-        </div>
-
-    </form>
+    </div>
 
 </div>
