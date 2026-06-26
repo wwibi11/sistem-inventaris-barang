@@ -167,14 +167,6 @@
     </li>
 
     <li class="nav-item">
-        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-ibu-hamil' ? 'active' : '' ?>"
-        href="index.php?url=laporan-ibu-hamil">
-            <i class="fas fa-person-pregnant"></i>
-            <span>Laporan Ibu Hamil</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
         <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-statistik' ? 'active' : '' ?>"
         href="index.php?url=laporan-statistik">
             <i class="fas fa-chart-bar"></i>
