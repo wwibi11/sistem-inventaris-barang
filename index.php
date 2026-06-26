@@ -38,7 +38,9 @@ $role_access = [
         'laporan',
         'imunisasi',
         'ibu_hamil',
-        'master_imunisasi'
+        'master_imunisasi',
+        'imunisasi_ibu',
+        'kehadiran_ibu_hamil'
     ],
 
     'bidan' => [
@@ -51,7 +53,9 @@ $role_access = [
         'laporan',
         'imunisasi',
         'ibu_hamil',
-        'master_imunisasi'
+        'master_imunisasi',
+        'imunisasi_ibu',
+        'kehadiran_ibu_hamil'
     ],
 ];
 

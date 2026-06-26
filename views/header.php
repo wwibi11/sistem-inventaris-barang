@@ -297,6 +297,209 @@
                 display: none !important;
             }
         }
+        /* ============================================
+   CSS UNTUK DETAIL KEGIATAN
+   ============================================ */
+.detail-kegiatan-container { padding: 10px 0; }
+
+.card-header-kegiatan {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.card-header-kegiatan .title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a2634;
+    margin: 0;
+}
+.card-header-kegiatan .date {
+    font-size: 13px;
+    color: #8a94a6;
+}
+
+.badge-status-kegiatan {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.badge-status-kegiatan.selesai { background: #d1fae5; color: #047857; }
+.badge-status-kegiatan.scheduled { background: #fef3c7; color: #92400e; }
+
+.stat-card-detail-kegiatan {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e8ecf1;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    height: 100%;
+}
+.stat-card-detail-kegiatan .stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a2634;
+}
+.stat-card-detail-kegiatan .stat-label {
+    font-size: 12px;
+    color: #8a94a6;
+    margin-top: 2px;
+}
+.stat-card-detail-kegiatan.primary .stat-number { color: #2c6b9e; }
+.stat-card-detail-kegiatan.success .stat-number { color: #28a745; }
+.stat-card-detail-kegiatan.info .stat-number { color: #17a2b8; }
+.stat-card-detail-kegiatan.warning .stat-number { color: #e8a317; }
+
+.progress-kegiatan-detail {
+    height: 8px;
+    border-radius: 4px;
+    background: #edf2f7;
+}
+.progress-kegiatan-detail .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    background: #28a745;
+    transition: width 0.6s ease;
+}
+
+/* NAV TABS */
+.nav-tabs-custom-kegiatan {
+    border-bottom: 1px solid #edf2f7;
+    margin-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding-left: 0;
+}
+.nav-tabs-custom-kegiatan .nav-item {
+    margin-bottom: -1px;
+}
+.nav-tabs-custom-kegiatan .nav-link {
+    border: none;
+    color: #8a94a6;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: block;
+    text-decoration: none;
+}
+.nav-tabs-custom-kegiatan .nav-link:hover {
+    background: #f0f4f8;
+    color: #2c6b9e;
+    text-decoration: none;
+}
+.nav-tabs-custom-kegiatan .nav-link.active {
+    background: #e8f0fe;
+    color: #2c6b9e;
+    font-weight: 600;
+    border-bottom: 3px solid #2c6b9e;
+}
+
+.tab-content-kegiatan {
+    background: #ffffff;
+    border: 1px solid #e8ecf1;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 20px;
+    min-height: 200px;
+}
+
+.tab-pane {
+    display: none;
+}
+.tab-pane.active,
+.tab-pane.show {
+    display: block;
+}
+
+.table-kegiatan-detail {
+    font-size: 13px;
+    margin: 0;
+}
+.table-kegiatan-detail thead th {
+    background: #f8f9fc;
+    color: #4a5568;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 10px 14px;
+    border-bottom: 2px solid #edf2f7;
+}
+.table-kegiatan-detail tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f2f5;
+    vertical-align: middle;
+}
+.table-kegiatan-detail tbody tr:last-child td { border-bottom: none; }
+
+.alert-info-custom {
+    border-radius: 10px;
+    border: none;
+    background: #e8f0fe;
+    color: #1a2634;
+    padding: 12px 16px;
+}
+.alert-info-custom i { color: #2c6b9e; margin-right: 8px; }
+
+.btn-sm-kegiatan {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.badge-pemeriksaan {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.badge-pemeriksaan.Baik { background: #d1fae5; color: #047857; }
+.badge-pemeriksaan.Normal { background: #d1fae5; color: #047857; }
+.badge-pemeriksaan.Kurang { background: #fef3c7; color: #92400e; }
+.badge-pemeriksaan.Buruk { background: #fee2e2; color: #b91c1c; }
+.badge-pemeriksaan.Lebih { background: #dbeafe; color: #1d4ed8; }
+
+.badge-imunisasi-detail {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.badge-imunisasi-detail.primary { background: #dbeafe; color: #1d4ed8; }
+.badge-imunisasi-detail.success { background: #d1fae5; color: #047857; }
+.badge-imunisasi-detail.warning { background: #fef3c7; color: #92400e; }
+.badge-imunisasi-detail.danger { background: #fee2e2; color: #b91c1c; }
+.badge-imunisasi-detail.info { background: #e0f7fa; color: #00838f; }
+.badge-imunisasi-detail.default { background: #f3f4f6; color: #6b7280; }
+
+.badge-trimester {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.badge-trimester.t1 { background: #dbeafe; color: #1d4ed8; }
+.badge-trimester.t2 { background: #fef3c7; color: #92400e; }
+.badge-trimester.t3 { background: #fce4ec; color: #c62828; }
+.badge-trimester.t0 { background: #f3f4f6; color: #6b7280; }
+
+@media (max-width: 768px) {
+    .card-header-kegiatan .d-flex {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px;
+    }
+    .card-header-kegiatan .text-right { text-align: left !important; }
+    .nav-tabs-custom-kegiatan .nav-link { padding: 8px 12px; font-size: 12px; }
+}
     </style>
 </head>
 

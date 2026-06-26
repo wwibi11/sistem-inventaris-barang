@@ -107,7 +107,7 @@
         <a class="nav-link <?= ($_GET['url'] ?? '') == 'pemeriksaan' ? 'active' : '' ?>" 
            href="index.php?url=pemeriksaan">
             <i class="fas fa-stethoscope"></i>
-            <span>Pemeriksaan</span>
+            <span>Pemeriksaan Anak</span>
         </a>
     </li>
 
@@ -115,7 +115,15 @@
         <a class="nav-link <?= ($_GET['url'] ?? '') == 'imunisasi' ? 'active' : '' ?>" 
            href="index.php?url=imunisasi">
             <i class="fas fa-syringe"></i>
-            <span>Imunisasi</span>
+            <span>Imunisasi Anak</span>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'imunisasi_ibu' ? 'active' : '' ?>"
+        href="index.php?url=imunisasi_ibu">
+            <i class="fas fa-fw fa-syringe"></i>
+            <span>Imunisasi Ibu Hamil</span>
         </a>
     </li>
 
@@ -135,43 +143,42 @@
     <div class="sidebar-heading">Laporan</div>
 
     <li class="nav-item">
-        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-kehadiran' ? 'active' : '' ?>" 
-           href="index.php?url=laporan-kehadiran">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-kehadiran' ? 'active' : '' ?>"
+        href="index.php?url=laporan-kehadiran">
             <i class="fas fa-clipboard-check"></i>
-            <span>Kehadiran</span>
+            <span>Laporan Kehadiran</span>
         </a>
     </li>
 
     <li class="nav-item">
-        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-pemeriksaan' ? 'active' : '' ?>" 
-           href="index.php?url=laporan-pemeriksaan">
-            <i class="fas fa-file-medical"></i>
-            <span>Pemeriksaan</span>
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-pemeriksaan' ? 'active' : '' ?>"
+        href="index.php?url=laporan-pemeriksaan">
+            <i class="fas fa-stethoscope"></i>
+            <span>Laporan Pemeriksaan</span>
         </a>
     </li>
 
     <li class="nav-item">
-        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-imunisasi' ? 'active' : '' ?>" 
-           href="index.php?url=laporan-imunisasi">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-imunisasi' ? 'active' : '' ?>"
+        href="index.php?url=laporan-imunisasi">
             <i class="fas fa-syringe"></i>
-            <span>Imunisasi</span>
+            <span>Laporan Imunisasi</span>
         </a>
     </li>
 
     <li class="nav-item">
-        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-statistik' ? 'active' : '' ?>" 
-           href="index.php?url=laporan-statistik">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-ibu-hamil' ? 'active' : '' ?>"
+        href="index.php?url=laporan-ibu-hamil">
+            <i class="fas fa-person-pregnant"></i>
+            <span>Laporan Ibu Hamil</span>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-statistik' ? 'active' : '' ?>"
+        href="index.php?url=laporan-statistik">
             <i class="fas fa-chart-bar"></i>
             <span>Statistik Posyandu</span>
-        </a>
-    </li>
-
-
-    <li class="nav-item">
-        <a class="nav-link <?= ($_GET['url'] ?? '') == 'laporan-ibu-hamil' ? 'active' : '' ?>" 
-           href="index.php?url=laporan-ibu-hamil">
-            <i class="fas fa-fw fa-file-medical"></i>
-            <span>Ibu Hamil</span>
         </a>
     </li>
 

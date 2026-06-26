@@ -1,11 +1,18 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
 
+// Koneksi database
+$pdo = new PDO("mysql:host=localhost;dbname=posyandu_db", "root", "");
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+// Query statistik
 $totalAnak = $pdo->query("SELECT COUNT(*) FROM anak WHERE status='aktif'")->fetchColumn();
 $totalKegiatan = $pdo->query("SELECT COUNT(*) FROM kegiatan")->fetchColumn();
 $totalSelesai = $pdo->query("SELECT COUNT(*) FROM kegiatan WHERE status='selesai'")->fetchColumn();
 $totalScheduled = $pdo->query("SELECT COUNT(*) FROM kegiatan WHERE status='scheduled'")->fetchColumn();
+$totalIbuHamil = $pdo->query("SELECT COUNT(*) FROM ibu_hamil WHERE status='Aktif'")->fetchColumn();
 
+// Query data kegiatan - URUTKAN BERDASARKAN TANGGAL TERBARU DAN ID TERBARU
 $data = $pdo->query("
 SELECT
     k.*,
@@ -20,14 +27,12 @@ LEFT JOIN kehadiran h ON h.id_kegiatan = k.id
 LEFT JOIN pemeriksaan p ON p.id_kegiatan = k.id
 LEFT JOIN imunisasi i ON i.id_kegiatan = k.id
 GROUP BY k.id
-ORDER BY k.tanggal DESC
+ORDER BY k.tanggal DESC, k.id DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
+
 <style>
-/* ============================================
-   STYLE DASHBOARD KEGIATAN
-   ============================================ */
 
 .kegiatan-container { padding: 10px 0; }
 
@@ -35,19 +40,19 @@ ORDER BY k.tanggal DESC
 .kegiatan-header {
     background: #ffffff;
     border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
     border: 1px solid #e8ecf1;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 10px;
 }
 
 .kegiatan-header .header-left h4 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: #1a2634;
     margin: 0;
@@ -55,74 +60,75 @@ ORDER BY k.tanggal DESC
 
 .kegiatan-header .header-left h4 i {
     color: #2c6b9e;
-    margin-right: 10px;
+    margin-right: 8px;
 }
 
 .kegiatan-header .header-left .sub-title {
-    font-size: 13px;
+    font-size: 12px;
     color: #8a94a6;
     margin-top: 2px;
 }
 
-/* Stat Cards */
+/* Stat Cards - DIPERKECIL */
 .stat-card-kegiatan {
     background: #ffffff;
-    border-radius: 12px;
-    padding: 16px 20px;
+    border-radius: 10px;
+    padding: 12px 16px;
     border: 1px solid #e8ecf1;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     height: 100%;
     transition: all 0.3s ease;
 }
 
 .stat-card-kegiatan:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
 .stat-card-kegiatan .stat-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 16px;
     color: #ffffff;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
 .stat-card-kegiatan .stat-icon.primary { background: #2c6b9e; }
 .stat-card-kegiatan .stat-icon.success { background: #28a745; }
 .stat-card-kegiatan .stat-icon.info { background: #17a2b8; }
 .stat-card-kegiatan .stat-icon.warning { background: #e8a317; }
+.stat-card-kegiatan .stat-icon.pink { background: #e83e8c; }
 
 .stat-card-kegiatan .stat-number {
-    font-size: 26px;
+    font-size: 20px;
     font-weight: 700;
     color: #1a2634;
     line-height: 1.2;
 }
 
 .stat-card-kegiatan .stat-label {
-    font-size: 12px;
+    font-size: 11px;
     color: #8a94a6;
     margin-top: 2px;
 }
 
-/* Button Tambah */
+/* Button Tambah - DIPERKECIL */
 .btn-tambah-kegiatan {
     background: #2c6b9e;
     color: #ffffff;
     border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
     font-weight: 600;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     text-decoration: none;
 }
 
@@ -130,7 +136,7 @@ ORDER BY k.tanggal DESC
     background: #1f507a;
     color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(44, 107, 158, 0.25);
+    box-shadow: 0 4px 15px rgba(44, 107, 158, 0.25);
     text-decoration: none;
 }
 
@@ -151,23 +157,23 @@ ORDER BY k.tanggal DESC
 }
 
 .card-kegiatan .card-body {
-    padding: 20px 22px;
+    padding: 16px 18px;
 }
 
 .card-kegiatan .kegiatan-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: #1a2634;
     margin: 0;
 }
 
 .card-kegiatan .kegiatan-date {
-    font-size: 13px;
+    font-size: 12px;
     color: #8a94a6;
 }
 
 .card-kegiatan .kegiatan-location {
-    font-size: 13px;
+    font-size: 12px;
     color: #4a5568;
 }
 
@@ -177,9 +183,9 @@ ORDER BY k.tanggal DESC
 
 /* Badge Status */
 .badge-status-kegiatan {
-    padding: 4px 14px;
+    padding: 3px 12px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
 }
 
@@ -195,7 +201,7 @@ ORDER BY k.tanggal DESC
 
 /* Progress */
 .progress-kegiatan {
-    height: 6px;
+    height: 5px;
     border-radius: 4px;
     background: #edf2f7;
 }
@@ -207,27 +213,27 @@ ORDER BY k.tanggal DESC
     transition: width 0.6s ease;
 }
 
-/* Stat Mini dalam Card */
+/* Stat Mini dalam Card - DIPERKECIL */
 .stat-mini-card {
     text-align: center;
 }
 
 .stat-mini-card .stat-mini-number {
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 700;
     color: #1a2634;
 }
 
 .stat-mini-card .stat-mini-label {
-    font-size: 11px;
+    font-size: 10px;
     color: #8a94a6;
 }
 
-/* Aksi Button */
+/* Aksi Button - DIPERKECIL */
 .btn-action-kegiatan {
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 500;
     border: none;
     transition: all 0.2s ease;
@@ -264,7 +270,8 @@ ORDER BY k.tanggal DESC
     color: #ffffff;
     width: 100%;
     justify-content: center;
-    padding: 10px;
+    padding: 8px;
+    font-size: 12px;
 }
 
 .btn-action-kegiatan.manage:hover {
@@ -278,7 +285,7 @@ ORDER BY k.tanggal DESC
     .kegiatan-header {
         flex-direction: column;
         align-items: stretch;
-        padding: 16px;
+        padding: 12px;
     }
     .btn-tambah-kegiatan {
         width: 100%;
@@ -298,7 +305,7 @@ ORDER BY k.tanggal DESC
             </h4>
             <div class="sub-title">
                 <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
-                Monitoring seluruh kegiatan Posyandu Bougenvil Belik
+                Monitoring seluruh kegiatan Posyandu
             </div>
         </div>
         <a href="index.php?url=kegiatan-create" class="btn-tambah-kegiatan">
@@ -306,34 +313,41 @@ ORDER BY k.tanggal DESC
         </a>
     </div>
 
-    <!-- STATISTIK -->
+    <!-- STATISTIK - 5 CARD DALAM 1 BARIS -->
     <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-2 col-sm-4 col-6 mb-2">
             <div class="stat-card-kegiatan">
                 <div class="stat-icon primary"><i class="fas fa-child"></i></div>
                 <div class="stat-number"><?= $totalAnak ?></div>
-                <div class="stat-label">Total Anak Aktif</div>
+                <div class="stat-label">Anak Aktif</div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-2 col-sm-4 col-6 mb-2">
             <div class="stat-card-kegiatan">
                 <div class="stat-icon success"><i class="fas fa-calendar-check"></i></div>
                 <div class="stat-number"><?= $totalKegiatan ?></div>
                 <div class="stat-label">Total Kegiatan</div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-2 col-sm-4 col-6 mb-2">
             <div class="stat-card-kegiatan">
                 <div class="stat-icon info"><i class="fas fa-check-circle"></i></div>
                 <div class="stat-number"><?= $totalSelesai ?></div>
                 <div class="stat-label">Selesai</div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-2 col-sm-4 col-6 mb-2">
             <div class="stat-card-kegiatan">
                 <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
                 <div class="stat-number"><?= $totalScheduled ?></div>
                 <div class="stat-label">Terjadwal</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6 mb-2">
+            <div class="stat-card-kegiatan">
+                <div class="stat-icon pink"><i class="fas fa-female"></i></div>
+                <div class="stat-number"><?= $totalIbuHamil ?></div>
+                <div class="stat-label">Ibu Hamil</div>
             </div>
         </div>
     </div>
@@ -365,16 +379,16 @@ ORDER BY k.tanggal DESC
                         </span>
                     </div>
 
-                    <hr style="margin: 12px 0;">
+                    <hr style="margin: 10px 0;">
 
                     <!-- Lokasi -->
-                    <div class="kegiatan-location mb-3">
+                    <div class="kegiatan-location mb-2">
                         <i class="fas fa-map-marker-alt"></i> 
                         <?= htmlspecialchars($d['lokasi']) ?>
                     </div>
 
                     <!-- Stat Mini -->
-                    <div class="row text-center mb-3">
+                    <div class="row text-center mb-2">
                         <div class="col-4">
                             <div class="stat-mini-card">
                                 <div class="stat-mini-number text-primary"><?= $d['total_hadir'] ?></div>
@@ -396,8 +410,8 @@ ORDER BY k.tanggal DESC
                     </div>
 
                     <!-- Progress -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between" style="font-size: 12px;">
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between" style="font-size: 11px;">
                             <span style="color: #4a5568;">Kehadiran</span>
                             <span style="color: #1a2634; font-weight: 600;"><?= $progress ?>%</span>
                         </div>
@@ -411,7 +425,7 @@ ORDER BY k.tanggal DESC
                         <i class="fas fa-chevron-right"></i> Kelola Kegiatan
                     </a>
 
-                    <div class="mt-2 text-right" style="gap: 6px;">
+                    <div class="mt-2 text-end" style="gap: 4px;">
                         <a href="index.php?url=kegiatan-edit&id=<?= $d['id'] ?>" class="btn-action-kegiatan edit">
                             <i class="fas fa-edit"></i> Edit
                         </a>

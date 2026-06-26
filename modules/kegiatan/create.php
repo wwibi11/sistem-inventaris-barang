@@ -1,19 +1,32 @@
 <?php
+// modules/kegiatan/create.php
+// PAKAI JAVASCRIPT UNTUK REDIRECT
+
 require_once __DIR__ . '/../../config/database.php';
+
+$pdo = new PDO("mysql:host=localhost;dbname=posyandu_db", "root", "");
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 if (isset($_POST['simpan'])) {
     $stmt = $pdo->prepare("
-        INSERT INTO kegiatan (tanggal, lokasi, keterangan, pertemuan_ke, created_by)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO kegiatan (tanggal, lokasi, keterangan, pertemuan_ke, created_by, status)
+        VALUES (?, ?, ?, ?, ?, 'scheduled')
     ");
     $stmt->execute([
         $_POST['tanggal'],
         $_POST['lokasi'],
         $_POST['keterangan'],
         $_POST['pertemuan_ke'],
-        $_SESSION['user']['id']
+        $_SESSION['user']['id'] ?? 1
     ]);
-    header("Location: index.php?url=kegiatan");
+    
+    // PAKAI JAVASCRIPT, BUKAN HEADER()
+    echo "
+    <script>
+        alert('Kegiatan berhasil ditambahkan');
+        window.location='index.php?url=kegiatan';
+    </script>
+    ";
     exit;
 }
 ?>
