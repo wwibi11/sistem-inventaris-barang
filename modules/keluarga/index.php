@@ -671,11 +671,13 @@ MODAL IMPORT EXCEL
 
                 <!-- Tombol Download Template -->
                 <div class="text-center mb-4" style="padding: 16px 0;">
-                    <a href="index.php?url=keluarga-download-template" class="btn" style="background: #28a745; color: #ffffff; border-radius: 10px; padding: 12px 35px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px;">
+                    <a href="index.php?url=keluarga-download" 
+                    class="btn" 
+                    style="background: #28a745; color: #ffffff; border-radius: 10px; padding: 12px 35px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px;">
                         <i class="fas fa-download"></i> Download Template Excel
                     </a>
                     <div style="font-size: 12px; color: #8a94a6; margin-top: 6px;">
-                        <i class="fas fa-file-excel" style="color: #28a745;"></i> Format .xlsx · Ukuran: 15KB
+                        <i class="fas fa-file-excel" style="color: #28a745;"></i> Format .xlsx
                     </div>
                 </div>
 
@@ -696,7 +698,7 @@ MODAL IMPORT EXCEL
                             </label>
                         </div>
                         <small class="text-muted" style="font-size: 12px; display: block; margin-top: 6px;">
-                            <i class="fas fa-info-circle"></i> Format yang didukung: .xlsx, .xls (Maks 2MB)
+                            <i class="fas fa-info-circle"></i> Format yang didukung: .xlsx, .xls, .csv (Maks 2MB)
                         </small>
                     </div>
 
