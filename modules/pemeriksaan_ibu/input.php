@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 $id_kegiatan = (int) ($_GET['id_kegiatan'] ?? 0);
 
 if (!$id_kegiatan) {
-    echo "<script>window.location='index.php?url=pemeriksaan-ibu-hamil';</script>";
+    echo "<script>window.location='index.php?url=pemeriksaan_ibu';</script>";
     exit;
 }
 
@@ -14,15 +14,14 @@ $stmt->execute([$id_kegiatan]);
 $kegiatan = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$kegiatan) {
-    die("<div style='padding:30px'><h3>Kegiatan tidak ditemukan</h3><a href='index.php?url=pemeriksaan-ibu-hamil'>Kembali</a></div>");
+    die("<div style='padding:30px'><h3>Kegiatan tidak ditemukan</h3><a href='index.php?url=pemeriksaan_ibu'>Kembali</a></div>");
 }
 
 // IBU HAMIL HADIR
 $stmt = $pdo->prepare("
     SELECT
         ih.*,
-        TIMESTAMPDIFF(WEEK, ih.hpht, CURDATE()) AS usia_kehamilan_minggu,
-        TIMESTAMPDIFF(MONTH, ih.hpht, CURDATE()) AS usia_kehamilan_bulan
+        TIMESTAMPDIFF(WEEK, ih.hpht, CURDATE()) AS usia_kehamilan_minggu
     FROM kehadiran_ibu_hamil h
     JOIN ibu_hamil ih ON ih.id = h.ibu_hamil_id
     WHERE h.id_kegiatan = ? AND h.status_hadir = 'hadir'
@@ -43,6 +42,11 @@ foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
 // SIMPAN
 if (isset($_POST['simpan'])) {
     foreach ($_POST['ibu_hamil_id'] as $id_ibu) {
+        // Proses nilai kosong menjadi NULL untuk field decimal
+        $berat_badan = !empty($_POST['berat_badan'][$id_ibu]) ? $_POST['berat_badan'][$id_ibu] : null;
+        $lingkar_lengan = !empty($_POST['lingkar_lengan'][$id_ibu]) ? $_POST['lingkar_lengan'][$id_ibu] : null;
+        $tinggi_fundus = !empty($_POST['tinggi_fundus'][$id_ibu]) ? $_POST['tinggi_fundus'][$id_ibu] : null;
+        
         $stmt = $pdo->prepare("
             INSERT INTO pemeriksaan_ibu_hamil (
                 ibu_hamil_id, id_kegiatan, tanggal_periksa, usia_kehamilan,
@@ -65,16 +69,16 @@ if (isset($_POST['simpan'])) {
             $id_kegiatan,
             $_POST['tanggal_periksa'][$id_ibu] ?? date('Y-m-d'),
             $_POST['usia_kehamilan'][$id_ibu] ?? 0,
-            $_POST['berat_badan'][$id_ibu] ?? null,
+            $berat_badan,
             $_POST['tekanan_darah'][$id_ibu] ?? '',
-            $_POST['lingkar_lengan'][$id_ibu] ?? null,
-            $_POST['tinggi_fundus'][$id_ibu] ?? null,
+            $lingkar_lengan,
+            $tinggi_fundus,
             $_POST['keluhan'][$id_ibu] ?? '',
             $_POST['tindakan'][$id_ibu] ?? '',
             $_POST['keterangan'][$id_ibu] ?? ''
         ]);
     }
-    echo "<script>window.location='index.php?url=pemeriksaan-ibu-hamil&id_kegiatan=".$id_kegiatan."';</script>";
+    echo "<script>window.location='index.php?url=pemeriksaan_ibu&id_kegiatan=".$id_kegiatan."';</script>";
     exit;
 }
 
@@ -103,7 +107,7 @@ $totalIbu = count($ibuHamil);
     margin: 0;
 }
 .pemeriksaan-ibu-input-header .header-left h4 i {
-    color: #e83e8c;
+    color: #2c6b9e;
     margin-right: 10px;
 }
 .pemeriksaan-ibu-input-header .header-left .sub-title {
@@ -114,7 +118,7 @@ $totalIbu = count($ibuHamil);
 .pemeriksaan-ibu-input-header .header-right .total {
     font-size: 28px;
     font-weight: 700;
-    color: #e83e8c;
+    color: #2c6b9e;
 }
 .pemeriksaan-ibu-input-header .header-right .label {
     font-size: 12px;
@@ -176,7 +180,7 @@ $totalIbu = count($ibuHamil);
     font-size: 14px;
 }
 .card-form-pemeriksaan-ibu .card-header-custom h6 i {
-    color: #e83e8c;
+    color: #2c6b9e;
     margin-right: 8px;
 }
 .table-input-pemeriksaan-ibu {
@@ -214,8 +218,8 @@ $totalIbu = count($ibuHamil);
 }
 .table-input-pemeriksaan-ibu .form-control:focus,
 .table-input-pemeriksaan-ibu .custom-select:focus {
-    border-color: #e83e8c;
-    box-shadow: 0 0 0 3px rgba(232, 62, 140, 0.1);
+    border-color: #2c6b9e;
+    box-shadow: 0 0 0 3px rgba(44, 107, 158, 0.1);
     background: #ffffff;
 }
 .table-input-pemeriksaan-ibu textarea.form-control {
@@ -232,7 +236,7 @@ $totalIbu = count($ibuHamil);
     flex-wrap: wrap;
 }
 .btn-simpan-pemeriksaan-ibu {
-    background: #e83e8c;
+    background: #28a745;
     color: #ffffff;
     border: none;
     padding: 10px 24px;
@@ -242,9 +246,9 @@ $totalIbu = count($ibuHamil);
     transition: all 0.3s ease;
 }
 .btn-simpan-pemeriksaan-ibu:hover {
-    background: #c2186b;
+    background: #1e7e34;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(232, 62, 140, 0.25);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.25);
 }
 .badge-trimester {
     padding: 4px 12px;
@@ -300,7 +304,7 @@ $totalIbu = count($ibuHamil);
 
     <!-- ACTION -->
     <div class="mb-3" style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="index.php?url=pemeriksaan-ibu-hamil&id_kegiatan=<?= $id_kegiatan ?>" class="btn-action-input secondary">
+        <a href="index.php?url=pemeriksaan_ibu&id_kegiatan=<?= $id_kegiatan ?>" class="btn-action-input secondary">
             <i class="fas fa-arrow-left"></i> Monitoring
         </a>
         <a href="index.php?url=kegiatan-detail&id=<?= $id_kegiatan ?>" class="btn-action-input info">
@@ -389,7 +393,7 @@ $totalIbu = count($ibuHamil);
                 </table>
             </div>
             <div class="card-footer-form">
-                <a href="index.php?url=pemeriksaan-ibu-hamil&id_kegiatan=<?= $id_kegiatan ?>" class="btn-action-input secondary">
+                <a href="index.php?url=pemeriksaan_ibu&id_kegiatan=<?= $id_kegiatan ?>" class="btn-action-input secondary">
                     <i class="fas fa-times"></i> Batal
                 </a>
                 <button type="submit" name="simpan" class="btn-simpan-pemeriksaan-ibu">
