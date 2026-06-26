@@ -408,37 +408,6 @@ $total_anak = array_sum(array_column($data, 'jumlah_anak'));
         justify-content: center;
     }
 }
-
-
-/* Modal Import */
-.custom-file-input:focus ~ .custom-file-label {
-    border-color: #2c6b9e;
-    box-shadow: 0 0 0 3px rgba(44, 107, 158, 0.1);
-}
-
-.custom-file-input:focus ~ .custom-file-label::after {
-    border-color: #2c6b9e;
-}
-
-.alert-info-import {
-    background: #eff6ff;
-    border: 1px solid #dbeafe;
-    border-radius: 10px;
-    padding: 16px 20px;
-}
-
-.alert-info-import i {
-    color: #2c6b9e;
-}
-
-.alert-info-import ol {
-    margin-top: 6px;
-    padding-left: 20px;
-    font-size: 13px;
-    color: #4a5568;
-    line-height: 1.8;
-}
-
 </style>
 
 <div class="keluarga-container">
@@ -484,12 +453,6 @@ $total_anak = array_sum(array_column($data, 'jumlah_anak'));
                     data-url="index.php?url=keluarga-create">
                 <i class="fas fa-plus-circle"></i>
                 Tambah Keluarga
-            </button>
-
-            <!-- Tombol Import -->
-            <button type="button" class="btn-tambah" style="background: #28a745;" data-toggle="modal" data-target="#importModal">
-                <i class="fas fa-file-upload"></i>
-                Import Excel
             </button>
         </div>
     </div>
@@ -630,91 +593,6 @@ MODAL GLOBAL
     </div>
 </div>
 
-
-
-
-
-<!-- ==========================================
-MODAL IMPORT EXCEL
-========================================== -->
-<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content" style="border-radius: 14px; overflow: hidden; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
-            <!-- Header - Biru -->
-            <div class="modal-header" style="background: #2c6b9e; color: #ffffff; border: none; padding: 18px 24px;">
-                <h5 class="modal-title" style="font-weight: 600; font-size: 17px;">
-                    <i class="fas fa-file-upload" style="margin-right: 10px;"></i> Import Data Keluarga dari Excel
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.8;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            
-            <!-- Body -->
-            <div class="modal-body" style="padding: 28px 30px; background: #ffffff;">
-                
-                <!-- Info Box -->
-                <div class="alert" style="border-radius: 10px; border: 1px solid #dbeafe; background: #eff6ff; color: #1a2634; padding: 16px 20px;">
-                    <div style="display: flex; gap: 12px; align-items: flex-start;">
-                        <i class="fas fa-info-circle" style="color: #2c6b9e; font-size: 20px; margin-top: 2px;"></i>
-                        <div>
-                            <strong style="color: #2c6b9e;">Panduan Import Excel:</strong>
-                            <ol style="margin-top: 8px; padding-left: 20px; font-size: 13px; color: #4a5568; line-height: 1.8;">
-                                <li>Download template Excel di bawah ini</li>
-                                <li>Isi data sesuai kolom yang tersedia <strong>(jangan ubah struktur kolom)</strong></li>
-                                <li>Upload file Excel yang sudah diisi</li>
-                                <li>Data akan otomatis ditambahkan ke sistem</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tombol Download Template -->
-                <div class="text-center mb-4" style="padding: 16px 0;">
-                    <a href="index.php?url=keluarga-download-template" class="btn" style="background: #28a745; color: #ffffff; border-radius: 10px; padding: 12px 35px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-download"></i> Download Template Excel
-                    </a>
-                    <div style="font-size: 12px; color: #8a94a6; margin-top: 6px;">
-                        <i class="fas fa-file-excel" style="color: #28a745;"></i> Format .xlsx · Ukuran: 15KB
-                    </div>
-                </div>
-
-                <hr style="border-color: #edf2f7; margin: 16px 0 24px 0;">
-
-                <!-- Form Upload -->
-                <form action="index.php?url=keluarga-import" method="POST" enctype="multipart/form-data">
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="font-weight: 600; color: #4a5568; font-size: 14px; margin-bottom: 6px;">
-                            <i class="fas fa-file-upload" style="color: #2c6b9e; margin-right: 6px;"></i> Pilih File Excel
-                        </label>
-                        <div class="custom-file">
-                            <input type="file" name="file_excel" class="custom-file-input" id="fileExcel" accept=".xlsx,.xls" required 
-                                   style="cursor: pointer;">
-                            <label class="custom-file-label" for="fileExcel" style="border-radius: 8px; padding: 12px 16px; background: #fafbfc; border: 1.5px solid #e2e8f0; cursor: pointer; transition: all 0.2s ease;">
-                                <i class="fas fa-file-excel" style="color: #28a745; margin-right: 8px;"></i> 
-                                <span id="fileName">Pilih file...</span>
-                            </label>
-                        </div>
-                        <small class="text-muted" style="font-size: 12px; display: block; margin-top: 6px;">
-                            <i class="fas fa-info-circle"></i> Format yang didukung: .xlsx, .xls (Maks 2MB)
-                        </small>
-                    </div>
-
-                    <div class="text-right mt-3" style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #edf2f7; padding-top: 20px;">
-                        <button type="button" class="btn" data-dismiss="modal" style="background: #f0f4f8; color: #4a5568; border-radius: 8px; padding: 10px 28px; font-weight: 500; border: none; transition: all 0.2s ease;">
-                            <i class="fas fa-times"></i> Batal
-                        </button>
-                        <button type="submit" name="import" class="btn" style="background: #28a745; color: #ffffff; border-radius: 8px; padding: 10px 28px; font-weight: 600; border: none; transition: all 0.3s ease;">
-                            <i class="fas fa-upload"></i> Import Data
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
 <!-- ==========================================
 SCRIPT
 ========================================== -->
@@ -747,12 +625,5 @@ document.querySelectorAll(".open-modal").forEach(function(button) {
 // Reset iframe saat modal ditutup
 $('#globalModal').on('hidden.bs.modal', function() {
     document.getElementById("modalFrame").src = "";
-});
-
-
-// Show file name on select
-document.getElementById('fileExcel')?.addEventListener('change', function(e) {
-    var fileName = e.target.files[0]?.name || 'Pilih file...';
-    document.getElementById('fileName').textContent = fileName;
 });
 </script>
