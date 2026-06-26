@@ -1,140 +1,273 @@
 # Posyandu System
 
-Sistem Informasi Posyandu berbasis PHP Native dan MariaDB untuk membantu pengelolaan data keluarga, data anak, kegiatan posyandu, pemeriksaan kesehatan, imunisasi, serta manajemen pengguna.
+Sistem Informasi Posyandu berbasis **PHP Native** dan **MariaDB** untuk membantu digitalisasi pelayanan Posyandu, mulai dari pengelolaan data keluarga, balita, ibu hamil, kegiatan Posyandu, pemeriksaan kesehatan, imunisasi, hingga pelaporan.
+
+---
 
 ## Preview
 
 ![Dashboard](img/screenshot/dash.png)
 
-## Fitur
+---
 
-### Dashboard
-- Statistik total anak
-- Statistik total keluarga
-- Statistik total kegiatan
-- Statistik kehadiran hari ini
-- Monitoring pemeriksaan
-- Monitoring validasi data
-- Daftar kegiatan terbaru
-- Daftar anak terbaru
+# Fitur
 
-### Data Master
-- Manajemen Data Keluarga
-- Manajemen Data Anak
-- Detail data keluarga
-- Detail data anak
-- Upload foto anak
+## Dashboard
 
-### Kegiatan Posyandu
-- Jadwal kegiatan posyandu
-- Kehadiran anak
-- Riwayat kegiatan
-
-### Pemeriksaan
-- Pencatatan berat badan
-- Pencatatan tinggi badan
-- Pencatatan lingkar kepala
-- Status gizi
-- Catatan pemeriksaan
-- Validasi pemeriksaan oleh bidan
-
-### Imunisasi
-- Pencatatan imunisasi
-- Riwayat imunisasi anak
-- Petugas pemberi imunisasi
-
-### Manajemen User
-- Login sistem
-- Role Admin
-- Role Kader
-- Role Bidan
-- Pengelolaan akun pengguna
+* Statistik Keluarga
+* Statistik Anak
+* Statistik Ibu Hamil
+* Statistik Kegiatan Posyandu
+* Monitoring Pemeriksaan
+* Monitoring Kehadiran
+* Dashboard Ringkasan Data
 
 ---
 
-## Teknologi
+## Master Data
 
-- PHP Native
-- MariaDB / MySQL
-- Bootstrap
-- jQuery
-- Font Awesome
-- Laragon
+### Data Keluarga
+
+* CRUD Data Keluarga
+* Detail Keluarga
+
+### Data Anak
+
+* CRUD Data Anak
+* Detail Anak
+* Grafik Pertumbuhan
+* Upload Foto Anak
+
+### Data Ibu Hamil
+
+* CRUD Data Ibu Hamil
+* Detail Ibu Hamil
+* Grafik Perkembangan Kehamilan
+
+### Master Imunisasi
+
+* Kelola Jenis Imunisasi Anak
+* Kelola Jenis Imunisasi Ibu Hamil
 
 ---
 
-## Struktur Database
+## Kegiatan Posyandu
 
-### Tabel Utama
-
-- `users`
-- `keluarga`
-- `anak`
-- `kegiatan`
-- `kehadiran`
-- `pemeriksaan`
-- `imunisasi`
+* Jadwal Posyandu
+* Kehadiran Anak
+* Riwayat Kegiatan
 
 ---
 
-## Struktur Folder
+## Pemeriksaan
+
+### Pemeriksaan Anak
+
+* Berat Badan
+* Tinggi Badan
+* Lingkar Kepala
+* Status Gizi
+* Catatan Pemeriksaan
+
+### Pemeriksaan Ibu Hamil
+
+* Usia Kehamilan
+* Berat Badan
+* Tekanan Darah
+* Lingkar Lengan Atas (LILA)
+* Tinggi Fundus Uteri
+* Keluhan
+* Tindakan
+* Catatan Pemeriksaan
+
+---
+
+## Imunisasi
+
+### Anak
+
+* Pencatatan Imunisasi
+* Riwayat Imunisasi
+
+### Ibu Hamil
+
+* Pencatatan Imunisasi TT
+* Riwayat Imunisasi
+
+---
+
+## Manajemen Pengguna
+
+* Login
+* Role Admin
+* Role Kader
+* Role Bidan
+
+---
+
+# Teknologi
+
+* PHP Native
+* MariaDB / MySQL
+* Bootstrap
+* jQuery
+* Font Awesome
+* Chart.js
+* Laragon
+
+---
+
+# Struktur Database
+
+## Master
+
+* users
+* keluarga
+* anak
+* ibu_hamil
+* master_imunisasi
+
+## Transaksi
+
+* kegiatan
+* kehadiran
+* pemeriksaan
+* pemeriksaan_ibu_hamil
+* imunisasi
+* imunisasi_ibu_hamil
+
+---
+
+# Struktur Folder
 
 ```text
 posyandu/
 │
+├── assets/
+├── auth/
 ├── config/
 ├── modules/
 │   ├── dashboard/
 │   ├── keluarga/
 │   ├── anak/
+│   ├── ibu_hamil/
 │   ├── kegiatan/
 │   ├── kehadiran/
 │   ├── pemeriksaan/
+│   ├── pemeriksaan_ibu_hamil/
 │   ├── imunisasi/
+│   ├── imunisasi_ibu_hamil/
+│   ├── master_imunisasi/
 │   └── users/
 │
 ├── views/
-├── assets/
-├── auth/
 └── index.php
 ```
 
 ---
 
-## Role Pengguna
+# Hak Akses
 
-### Admin
-- Mengelola seluruh data
-- Mengelola user
-- Mengakses seluruh menu
+## Admin
 
-### Kader
-- Mengelola data keluarga
-- Mengelola data anak
-- Mengelola kegiatan
-- Mengelola kehadiran
-- Mengelola pemeriksaan
-- Mengelola imunisasi
+* Mengelola seluruh data
+* Mengelola pengguna
+* Mengakses seluruh menu
 
-### Bidan
-- Mengakses data kesehatan
-- Memvalidasi pemeriksaan
-- Mengelola imunisasi
+## Kader
+
+* Mengelola data keluarga
+* Mengelola anak
+* Mengelola ibu hamil
+* Mengelola kegiatan
+* Mengelola kehadiran
+* Menginput pemeriksaan
+* Menginput imunisasi
+
+## Bidan
+
+* Melakukan pemeriksaan
+* Mengelola imunisasi
+* Memantau perkembangan kesehatan
 
 ---
 
-## Screenshot
+# Instalasi
 
-### Dashboard
+1. Clone repository
+
+```bash
+git clone https://github.com/username/posyandu.git
+```
+
+2. Import database
+
+```
+database/posyandu_db.sql
+```
+
+3. Atur konfigurasi database
+
+```
+config/database.php
+```
+
+4. Jalankan menggunakan Laragon, XAMPP, atau server PHP lainnya.
+
+---
+
+# Screenshot
+
+## Dashboard
 
 ![Dashboard](img/screenshot/dash.png)
 
+## Data Anak
+
+*(Tambahkan screenshot)*
+
+## Data Ibu Hamil
+
+*(Tambahkan screenshot)*
+
+## Pemeriksaan
+
+*(Tambahkan screenshot)*
+
+## Imunisasi
+
+*(Tambahkan screenshot)*
+
 ---
 
-## Informasi Database
+# Roadmap
 
-File database (.sql) tidak disertakan langsung dalam repository.
-Jika diperlukan, silakan menghubungi pengembang untuk mendapatkan file database.
+### Selesai
 
-## Lisensi
-Project ini dibuat untuk kebutuhan pembelajaran, penelitian, dan pengembangan Sistem Informasi Posyandu.
+* Dashboard
+* Data Keluarga
+* Data Anak
+* Data Ibu Hamil
+* Kegiatan Posyandu
+* Kehadiran
+* Pemeriksaan Anak
+* Pemeriksaan Ibu Hamil
+* Imunisasi Anak
+* Imunisasi Ibu Hamil
+* Master Imunisasi
+
+### Pengembangan Selanjutnya
+
+* Grafik Status Gizi
+* Grafik Kehamilan
+* Cetak KMS
+* Export PDF
+* Export Excel
+* Notifikasi Jadwal Posyandu
+* REST API
+
+---
+
+# Lisensi
+
+Project ini dikembangkan sebagai bagian dari penelitian dan pengembangan **Sistem Informasi Posyandu Berbasis Web** menggunakan metode **Scrum** serta digunakan untuk kebutuhan pembelajaran, penelitian, dan pengembangan lebih lanjut.
