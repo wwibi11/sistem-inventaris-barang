@@ -11,5 +11,6 @@ WHERE id = ?
 
 $stmt->execute([$id]);
 
-header("Location: index.php?url=imunisasi");
-exit;
+
+echo "<script>window.location.href = 'index.php?url=imunisasi';</script>";
+exit();

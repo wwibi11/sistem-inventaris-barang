@@ -91,7 +91,7 @@ if (isset($_POST['simpan'])) {
             $_SESSION['user']['id']
         ]);
     }
-    header("Location: index.php?url=pemeriksaan&id_kegiatan=".$id_kegiatan);
+    echo "<script>window.location='index.php?url=pemeriksaan&id_kegiatan=".$id_kegiatan."';</script>";
     exit;
 }
 

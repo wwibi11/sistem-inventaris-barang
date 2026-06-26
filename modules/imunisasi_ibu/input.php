@@ -3,62 +3,40 @@ require_once __DIR__ . '/../../config/database.php';
 
 $id_kegiatan = $_GET['id_kegiatan'] ?? 0;
 
-/*
-|--------------------------------------------------------------------------
-| SIMPAN DATA
-|--------------------------------------------------------------------------
-*/
-if (isset($_POST['simpan'])) {
-    $stmt = $pdo->prepare("
-        INSERT INTO imunisasi (id_anak, id_kegiatan, id_master_imunisasi, jenis_imunisasi, tanggal, diberikan_oleh)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
-    
-    // Ambil nama imunisasi dari master
-    $stmtMaster = $pdo->prepare("SELECT nama_imunisasi FROM master_imunisasi WHERE id = ?");
-    $stmtMaster->execute([$_POST['id_master_imunisasi']]);
-    $master = $stmtMaster->fetch(PDO::FETCH_ASSOC);
-    
-    $stmt->execute([
-        $_POST['anak'],
-        $_POST['kegiatan'],
-        $_POST['id_master_imunisasi'],
-        $master['nama_imunisasi'],
-        $_POST['tanggal'],
-        $_SESSION['user']['id']
-    ]);
-    
-    echo "<script>window.location='index.php?url=imunisasi&id_kegiatan=".$_POST['kegiatan']."';</script>";
-    exit;
-}
+// DATA IBU HAMIL AKTIF
+$ibuHamil = $pdo->query("SELECT * FROM ibu_hamil WHERE status='Aktif' ORDER BY nama_ibu ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-/*
-|--------------------------------------------------------------------------
-| DATA ANAK
-|--------------------------------------------------------------------------
-*/
-$anak = $pdo->query("SELECT * FROM anak WHERE status='aktif' ORDER BY nama ASC")->fetchAll(PDO::FETCH_ASSOC);
-
-/*
-|--------------------------------------------------------------------------
-| DATA KEGIATAN
-|--------------------------------------------------------------------------
-*/
+// DATA KEGIATAN
 $kegiatan = $pdo->query("SELECT * FROM kegiatan ORDER BY tanggal DESC")->fetchAll(PDO::FETCH_ASSOC);
 
-/*
-|--------------------------------------------------------------------------
-| DATA MASTER IMUNISASI - AMBIL DARI DATABASE
-|--------------------------------------------------------------------------
-*/
-$masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 'Anak' ORDER BY nama_imunisasi ASC")->fetchAll(PDO::FETCH_ASSOC);
+// DATA MASTER IMUNISASI IBU HAMIL
+$masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 'Ibu Hamil' ORDER BY nama_imunisasi ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+// SIMPAN DATA
+if (isset($_POST['simpan'])) {
+    $stmt = $pdo->prepare("
+        INSERT INTO imunisasi_ibu_hamil (ibu_hamil_id, imunisasi_id, tanggal, diberikan_oleh, keterangan)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    
+    $stmt->execute([
+        $_POST['ibu_hamil_id'],
+        $_POST['imunisasi_id'],
+        $_POST['tanggal'],
+        $_SESSION['user']['id'],
+        $_POST['keterangan'] ?? ''
+    ]);
+    
+    echo "<script>window.location.href = 'index.php?url=imunisasi_ibu';</script>";
+    exit;
+}
 ?>
 
 <style>
-.imunisasi-input-container { padding: 10px 0; }
+.imunisasi-ibu-input-container { padding: 10px 0; }
 
 /* Header */
-.imunisasi-input-header {
+.imunisasi-ibu-input-header {
     background: #ffffff;
     border-radius: 12px;
     padding: 20px 24px;
@@ -72,26 +50,48 @@ $masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 
     gap: 15px;
 }
 
-.imunisasi-input-header .header-left h4 {
+.imunisasi-ibu-input-header .header-left h4 {
     font-size: 18px;
     font-weight: 700;
     color: #1a2634;
     margin: 0;
 }
 
-.imunisasi-input-header .header-left h4 i {
+.imunisasi-ibu-input-header .header-left h4 i {
     color: #2c6b9e;
     margin-right: 10px;
 }
 
-.imunisasi-input-header .header-left .sub-title {
+.imunisasi-ibu-input-header .header-left .sub-title {
     font-size: 13px;
     color: #8a94a6;
     margin-top: 2px;
 }
 
+/* Button Back */
+.btn-back {
+    background: #f0f4f8;
+    color: #4a5568;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-back:hover {
+    background: #e2e8f0;
+    color: #1a2634;
+    text-decoration: none;
+}
+
 /* Card Form */
-.card-form-imunisasi {
+.card-form-imunisasi-ibu {
     background: #ffffff;
     border-radius: 12px;
     border: 1px solid #e8ecf1;
@@ -99,24 +99,24 @@ $masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 
     overflow: hidden;
 }
 
-.card-form-imunisasi .card-header-custom {
+.card-form-imunisasi-ibu .card-header-custom {
     padding: 14px 20px;
     border-bottom: 1px solid #edf2f7;
     background: #2c6b9e;
     color: #ffffff;
 }
 
-.card-form-imunisasi .card-header-custom h6 {
+.card-form-imunisasi-ibu .card-header-custom h6 {
     font-weight: 600;
     margin: 0;
     font-size: 14px;
 }
 
-.card-form-imunisasi .card-header-custom h6 i {
+.card-form-imunisasi-ibu .card-header-custom h6 i {
     margin-right: 8px;
 }
 
-.card-form-imunisasi .card-body-custom {
+.card-form-imunisasi-ibu .card-body-custom {
     padding: 22px 24px;
 }
 
@@ -177,63 +177,42 @@ $masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 
     color: #1a2634;
 }
 
-.btn-back {
-    background: #f0f4f8;
-    color: #4a5568;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-back:hover {
-    background: #e2e8f0;
-    color: #1a2634;
-    text-decoration: none;
-}
-
 @media (max-width: 768px) {
-    .imunisasi-input-header {
+    .imunisasi-ibu-input-header {
         flex-direction: column;
         align-items: stretch;
         padding: 16px;
     }
-    .card-form-imunisasi .card-body-custom {
+    .card-form-imunisasi-ibu .card-body-custom {
         padding: 16px;
     }
 }
 </style>
 
-<div class="imunisasi-input-container">
+<div class="imunisasi-ibu-input-container">
 
     <!-- HEADER -->
-    <div class="imunisasi-input-header">
+    <div class="imunisasi-ibu-input-header">
         <div class="header-left">
             <h4>
                 <i class="fas fa-syringe"></i>
-                Input Imunisasi Anak
+                Input Imunisasi Ibu Hamil
             </h4>
             <div class="sub-title">
                 <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
-                Tambahkan data imunisasi balita
+                Tambahkan data imunisasi ibu hamil (TT)
             </div>
         </div>
-        <a href="index.php?url=imunisasi&id_kegiatan=<?= $id_kegiatan ?>" class="btn-back">
+        <a href="index.php?url=imunisasi_ibu&id_kegiatan=<?= $id_kegiatan ?>" class="btn-back">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
     </div>
 
     <!-- FORM -->
-    <div class="card-form-imunisasi">
+    <div class="card-form-imunisasi-ibu">
         <div class="card-header-custom">
             <h6>
-                <i class="fas fa-syringe"></i> Form Imunisasi
+                <i class="fas fa-syringe"></i> Form Imunisasi Ibu Hamil
             </h6>
         </div>
         <div class="card-body-custom">
@@ -241,12 +220,13 @@ $masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Nama Anak <span style="color: #dc2626;">*</span></label>
-                            <select name="anak" class="custom-select" required>
-                                <option value="">-- Pilih Anak --</option>
-                                <?php foreach ($anak as $a): ?>
-                                    <option value="<?= $a['id'] ?>">
-                                        <?= htmlspecialchars($a['nama']) ?>
+                            <label>Nama Ibu Hamil <span style="color: #dc2626;">*</span></label>
+                            <select name="ibu_hamil_id" class="custom-select" required>
+                                <option value="">-- Pilih Ibu Hamil --</option>
+                                <?php foreach ($ibuHamil as $ih): ?>
+                                    <option value="<?= $ih['id'] ?>">
+                                        <?= htmlspecialchars($ih['nama_ibu']) ?> 
+                                        (<?= $ih['usia_kehamilan'] ?? 0 ?> minggu)
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -255,7 +235,7 @@ $masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Jenis Imunisasi <span style="color: #dc2626;">*</span></label>
-                            <select name="id_master_imunisasi" class="custom-select" required>
+                            <select name="imunisasi_id" class="custom-select" required>
                                 <option value="">-- Pilih Imunisasi --</option>
                                 <?php foreach ($masterImunisasi as $m): ?>
                                     <option value="<?= $m['id'] ?>">
@@ -277,7 +257,7 @@ $masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Kegiatan Posyandu <span style="color: #dc2626;">*</span></label>
-                            <select name="kegiatan" class="custom-select" required>
+                            <select name="kegiatan_id" class="custom-select" required>
                                 <option value="">-- Pilih Kegiatan --</option>
                                 <?php foreach ($kegiatan as $k): ?>
                                     <option value="<?= $k['id'] ?>" <?= ($k['id'] == $id_kegiatan) ? 'selected' : '' ?>>
@@ -289,13 +269,18 @@ $masterImunisasi = $pdo->query("SELECT * FROM master_imunisasi WHERE kategori = 
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label>Keterangan</label>
+                    <textarea name="keterangan" class="form-control" rows="3" placeholder="Catatan tambahan..."></textarea>
+                </div>
+
                 <hr style="margin: 20px 0;">
 
                 <div class="d-flex" style="gap: 10px; flex-wrap: wrap;">
                     <button type="submit" name="simpan" class="btn btn-success">
                         <i class="fas fa-save"></i> Simpan Imunisasi
                     </button>
-                    <a href="index.php?url=imunisasi&id_kegiatan=<?= $id_kegiatan ?>" class="btn btn-secondary">
+                    <a href="index.php?url=imunisasi_ibu&id_kegiatan=<?= $id_kegiatan ?>" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Batal
                     </a>
                 </div>

@@ -30,7 +30,7 @@ if (isset($_POST['simpan_kehadiran_anak'])) {
         ");
         $stmt->execute([$id_anak, $id_kegiatan, $status, $_SESSION['user']['id']]);
     }
-    header("Location: index.php?url=kegiatan-detail&id=".$id_kegiatan);
+     echo "<script>window.location='index.php?url=kegiatan-detail&id=".$id_kegiatan."';</script>";
     exit;
 }
 
@@ -46,7 +46,7 @@ if (isset($_POST['simpan_kehadiran_ibu'])) {
         ");
         $stmt->execute([$id_ibu, $id_kegiatan, $status, $_SESSION['user']['id']]);
     }
-    header("Location: index.php?url=kegiatan-detail&id=".$id_kegiatan);
+    echo "<script>window.location='index.php?url=kegiatan-detail&id=".$id_kegiatan."';</script>";
     exit;
 }
 
@@ -583,7 +583,7 @@ function formatDate($date) {
                 <i class="fas fa-stethoscope" style="color: #2c6b9e;"></i> Pemeriksaan Ibu Hamil
             </h6>
             <div class="text-right mb-3">
-                <a href="index.php?url=pemeriksaan-ibu-input&id_kegiatan=<?= $id_kegiatan ?>" class="btn btn-success btn-sm-kegiatan">
+                <a href="index.php?url=pemeriksaan_ibu-input&id_kegiatan=<?= $id_kegiatan ?>" class="btn btn-success btn-sm-kegiatan">
                     <i class="fas fa-plus-circle"></i> Input Pemeriksaan Ibu
                 </a>
             </div>
@@ -633,7 +633,7 @@ function formatDate($date) {
                 <i class="fas fa-syringe" style="color: #2c6b9e;"></i> Imunisasi Ibu Hamil
             </h6>
             <div class="text-right mb-3">
-                <a href="index.php?url=imunisasi-ibu-input&id_kegiatan=<?= $id_kegiatan ?>" class="btn btn-primary btn-sm-kegiatan">
+                <a href="index.php?url=imunisasi_ibu-input&id_kegiatan=<?= $id_kegiatan ?>" class="btn btn-primary btn-sm-kegiatan">
                     <i class="fas fa-plus-circle"></i> Input Imunisasi Ibu
                 </a>
             </div>
