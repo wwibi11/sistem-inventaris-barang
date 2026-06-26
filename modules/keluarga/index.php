@@ -1,9 +1,29 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
 
-// ==========================
+
+// TAMPILKAN PESAN DARI SESSION
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (isset($_SESSION['import_message'])) {
+    echo "<div style='background: #d4edda; color: #155724; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #c3e6cb;'>
+            <strong>✅ " . nl2br(htmlspecialchars($_SESSION['import_message'])) . "</strong>
+          </div>";
+    unset($_SESSION['import_message']);
+}
+
+if (isset($_SESSION['import_error'])) {
+    echo "<div style='background: #f8d7da; color: #721c24; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #f5c6cb;'>
+            <strong>❌ " . nl2br(htmlspecialchars($_SESSION['import_error'])) . "</strong>
+          </div>";
+    unset($_SESSION['import_error']);
+}
+
 // DATA
-// ==========================
+
 $data = $pdo->query("
   SELECT
     keluarga.id,
@@ -683,19 +703,22 @@ MODAL IMPORT EXCEL
 
                 <hr style="border-color: #edf2f7; margin: 16px 0 24px 0;">
 
-                <!-- Form Upload -->
-                <form action="index.php?url=keluarga-import" method="POST" enctype="multipart/form-data">
+             
+               <!-- Form Upload -->
+                <form action="index.php?url=keluarga-import" method="POST" enctype="multipart/form-data" id="importForm">
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label style="font-weight: 600; color: #4a5568; font-size: 14px; margin-bottom: 6px;">
                             <i class="fas fa-file-upload" style="color: #2c6b9e; margin-right: 6px;"></i> Pilih File Excel
                         </label>
-                        <div class="custom-file">
-                            <input type="file" name="file_excel" class="custom-file-input" id="fileExcel" accept=".xlsx,.xls" required 
-                                   style="cursor: pointer;">
-                            <label class="custom-file-label" for="fileExcel" style="border-radius: 8px; padding: 12px 16px; background: #fafbfc; border: 1.5px solid #e2e8f0; cursor: pointer; transition: all 0.2s ease;">
-                                <i class="fas fa-file-excel" style="color: #28a745; margin-right: 8px;"></i> 
-                                <span id="fileName">Pilih file...</span>
+                        
+                        <div style="display: flex; align-items: center; gap: 12px; background: #fafbfc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 12px;">
+                            <input type="file" name="file_excel" id="fileExcel" accept=".xlsx,.xls,.csv" required 
+                                style="position: absolute; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1;"
+                                onchange="document.getElementById('fileName').innerHTML = '📊 ' + this.files[0].name; document.getElementById('fileName').style.color='#1a2634'; document.getElementById('fileName').style.fontWeight='500';">
+                            <label for="fileExcel" style="background: #2c6b9e; color: white; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; margin: 0; white-space: nowrap;">
+                                <i class="fas fa-folder-open"></i> Pilih File
                             </label>
+                            <span id="fileName" style="color: #4a5568; font-size: 13px; flex: 1; padding: 6px 0;">Belum ada file dipilih</span>
                         </div>
                         <small class="text-muted" style="font-size: 12px; display: block; margin-top: 6px;">
                             <i class="fas fa-info-circle"></i> Format yang didukung: .xlsx, .xls, .csv (Maks 2MB)
@@ -716,23 +739,28 @@ MODAL IMPORT EXCEL
     </div>
 </div>
 
-
 <!-- ==========================================
 SCRIPT
 ========================================== -->
 <script>
-// Search
+// ============================================================
+// SEARCH
+// ============================================================
 const searchInput = document.getElementById("searchInput");
-searchInput.addEventListener("keyup", function() {
-    let filter = this.value.toLowerCase();
-    let rows = document.querySelectorAll("#tableBody tr");
-    rows.forEach(function(row) {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
+if (searchInput) {
+    searchInput.addEventListener("keyup", function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#tableBody tr");
+        rows.forEach(function(row) {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+        });
     });
-});
+}
 
-// Open Modal
+// ============================================================
+// OPEN MODAL
+// ============================================================
 document.querySelectorAll(".open-modal").forEach(function(button) {
     button.addEventListener("click", function() {
         let title = this.dataset.title;
@@ -751,10 +779,38 @@ $('#globalModal').on('hidden.bs.modal', function() {
     document.getElementById("modalFrame").src = "";
 });
 
+// ============================================================
+// SHOW FILE NAME ON SELECT - PAKAI EVENT DELEGATION
+// ============================================================
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'fileExcel') {
+        var fileNameSpan = document.getElementById('fileName');
+        if (e.target.files.length > 0) {
+            fileNameSpan.textContent = '📊 ' + e.target.files[0].name;
+            fileNameSpan.style.color = '#1a2634'; // ← UBAH KE HITAM
+            fileNameSpan.style.fontWeight = '500';
+        } else {
+            fileNameSpan.textContent = 'Belum ada file dipilih';
+            fileNameSpan.style.color = '';
+            fileNameSpan.style.fontWeight = '';
+        }
+    }
+});
 
-// Show file name on select
-document.getElementById('fileExcel')?.addEventListener('change', function(e) {
-    var fileName = e.target.files[0]?.name || 'Pilih file...';
-    document.getElementById('fileName').textContent = fileName;
+// ============================================================
+// RESET NAMA FILE SAAT MODAL DITUTUP
+// ============================================================
+$('#importModal').on('hidden.bs.modal', function() {
+    var fileNameSpan = document.getElementById('fileName');
+    if (fileNameSpan) {
+        fileNameSpan.textContent = 'Belum ada file dipilih';
+        fileNameSpan.style.color = '';
+        fileNameSpan.style.fontWeight = '';
+    }
+    // Reset input file juga
+    var fileInput = document.getElementById('fileExcel');
+    if (fileInput) {
+        fileInput.value = '';
+    }
 });
 </script>

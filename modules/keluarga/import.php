@@ -2,10 +2,23 @@
 // modules/keluarga/import.php
 // PROSES IMPORT - SUPPORT EXCEL (.xlsx, .xls) & CSV
 
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../vendor/autoload.php';
+// ============================================================
+// DEBUG - TAMPILKAN SEMUA ERROR
+// ============================================================
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-use PhpOffice\PhpSpreadsheet\IOFactory;
+// ============================================================
+// REQUIRE AUTOPSRLOAD DULUAN!
+// ============================================================
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../vendor/autoload.php';  // ← PERTAMA
+
+// ============================================================
+// USE (SETELAH autoload)
+// ============================================================
+use PhpOffice\PhpSpreadsheet\IOFactory;  // ← KEDUA
 
 // Cek file upload
 if (!isset($_FILES['file_excel']) || $_FILES['file_excel']['error'] != 0) {
@@ -182,9 +195,13 @@ if (!empty($errors)) {
     $message .= "\n\n📋 Detail Error:\n" . implode("\n", $errors);
 }
 
-echo "<script>
-    alert('" . addslashes($message) . "');
-    window.location='index.php?url=keluarga';
-</script>";
+// ============================================================
+// PAKAI SESSION + REDIRECT HEADER (BUKAN JAVASCRIPT)
+// ============================================================
+session_start();
+$_SESSION['import_message'] = $message;
+
+// Redirect dengan header
+header('Location: index.php?url=keluarga');
 exit;
 ?>
