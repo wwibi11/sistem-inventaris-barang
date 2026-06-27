@@ -39,7 +39,7 @@ if (!file_exists($file)) {
 }
 
 // ============================================================
-// VALIDASI ROLE (kecuali untuk file tanpa header)
+// VALIDASI ROLE
 // ============================================================
 if (!in_array($action, $no_header_modules)) {
     $role_access = [
@@ -88,6 +88,14 @@ if (!in_array($action, $no_header_modules)) {
     if (!in_array('*', $role_access[$user_role]) && !in_array($module, $role_access[$user_role])) {
         http_response_code(403);
         exit('403 - Akses ditolak');
+    }
+
+    // ============================================================
+    // VALIDASI KHUSUS: MANAJEMEN USER HANYA UNTUK ADMIN
+    // ============================================================
+    if ($module == 'users' && $user_role != 'admin') {
+        http_response_code(403);
+        exit('403 - Akses ditolak. Hanya Admin yang dapat mengelola user.');
     }
 }
 
