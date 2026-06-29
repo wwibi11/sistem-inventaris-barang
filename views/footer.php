@@ -7,12 +7,12 @@
             <div class="container my-auto">
                 <div class="copyright text-center my-auto">
                     <span>
-                        <i class="fas fa-heartbeat" style="color: #dc3545;"></i>
-                        <span style="color: #1a2634; font-weight: 500;">E-Posyandu Bougenvil Belik</span>
+                        <i class="fas fa-boxes" style="color: #2c6b9e;"></i>
+                        <span style="color: #1a2634; font-weight: 500;">Sistem Inventaris Barang</span>
                         <span style="color: #8a94a6;">&copy; <?= date('Y'); ?></span>
                         <span style="color: #d1d5db; margin: 0 8px;">|</span>
                         <span style="color: #8a94a6; font-size: 12px;">
-                            <i class="fas fa-code"></i> v1.0
+                            <i class="fas fa-code"></i> v2.0
                         </span>
                     </span>
                 </div>
@@ -33,10 +33,10 @@
 <!-- jQuery Easing -->
 <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
 <!-- Ruang Admin JS -->
-<script src="js/ruang-admin.min.js"></script>
+<script src="assets/js/ruang-admin.min.js"></script>
 
 <!-- ============================================ -->
-<!-- SCRIPT UNTUK TOGGLE MOBILE -->
+<!-- SCRIPT TOGGLE MOBILE -->
 <!-- ============================================ -->
 <script>
 $(document).ready(function() {

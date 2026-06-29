@@ -2,7 +2,14 @@
 // views/sidebar.php
 
 $current_url = $_GET['url'] ?? 'dashboard';
-$user_role = $_SESSION['user']['role'] ?? '';
+$user_role = $_SESSION['user']['role'] ?? 'staff';
+
+// Role labels
+$role_labels = [
+    'super_admin' => 'Super Admin',
+    'admin' => 'Admin',
+    'staff' => 'Staff'
+];
 ?>
 
 <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
@@ -15,11 +22,11 @@ $user_role = $_SESSION['user']['role'] ?? '';
         <a class="d-flex align-items-center" href="index.php?url=dashboard" 
            style="text-decoration: none; gap: 14px;">
             <div class="sidebar-brand-icon" style="flex-shrink: 0;">
-                <i class="fas fa-heartbeat" style="font-size: 32px; color: #2c6b9e;"></i>
+                <i class="fas fa-boxes" style="font-size: 32px; color: #2c6b9e;"></i>
             </div>
             <div class="sidebar-brand-text" style="color: #1a2634; font-weight: 700; font-size: 18px; line-height: 1.2; white-space: nowrap;">
-                E-Posyandu
-                <small style="display: block; font-weight: 400; font-size: 11px; color: #8a94a6;">Bougenvil Belik</small>
+                Inventaris
+                <small style="display: block; font-weight: 400; font-size: 11px; color: #8a94a6;">Sistem Manajemen Barang</small>
             </div>
         </a>
     </div>
@@ -47,111 +54,70 @@ $user_role = $_SESSION['user']['role'] ?? '';
         Data Master
     </div>
 
+    <!-- Items - Semua Role -->
     <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'keluarga' ? 'active' : '' ?>" 
-           href="index.php?url=keluarga"
+        <a class="nav-link <?= $current_url == 'items' ? 'active' : '' ?>" 
+           href="index.php?url=items"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-home" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Data Keluarga</span>
+            <i class="fas fa-box" style="width: 24px; font-size: 15px;"></i>
+            <span style="font-size: 14px;">Data Barang</span>
+            <?php if ($user_role == 'staff'): ?>
+                <small style="font-size: 9px; color: #8a94a6; margin-left: auto;">(read)</small>
+            <?php endif; ?>
         </a>
     </li>
 
+    <!-- Categories - Admin & Super Admin -->
+    <?php if (in_array($user_role, ['admin', 'super_admin'])): ?>
     <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'anak' ? 'active' : '' ?>" 
-           href="index.php?url=anak"
+        <a class="nav-link <?= $current_url == 'categories' ? 'active' : '' ?>" 
+           href="index.php?url=categories"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-child" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Data Anak</span>
+            <i class="fas fa-tags" style="width: 24px; font-size: 15px;"></i>
+            <span style="font-size: 14px;">Kategori</span>
         </a>
     </li>
+    <?php endif; ?>
 
+    <!-- Borrowers - Semua Role -->
     <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'ibu_hamil' ? 'active' : '' ?>" 
-           href="index.php?url=ibu_hamil"
+        <a class="nav-link <?= $current_url == 'borrowers' ? 'active' : '' ?>" 
+           href="index.php?url=borrowers"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fa-solid fa-fw fa-person-pregnant" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Ibu Hamil</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'master_imunisasi' ? 'active' : '' ?>" 
-           href="index.php?url=master_imunisasi"
-           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-fw fa-syringe" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Master Imunisasi</span>
-        </a>
-    </li>
-
-    <hr class="sidebar-divider" style="margin: 10px 20px;">
-
-    <!-- ======================== -->
-    <!-- KEGIATAN -->
-    <!-- ======================== -->
-    <div class="sidebar-heading" style="padding: 12px 20px 6px; font-size: 11px; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">
-        Kegiatan
-    </div>
-
-    <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'kegiatan' ? 'active' : '' ?>" 
-           href="index.php?url=kegiatan"
-           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-calendar" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Jadwal Posyandu</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'kehadiran' ? 'active' : '' ?>" 
-           href="index.php?url=kehadiran"
-           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-check" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Kehadiran</span>
+            <i class="fas fa-users" style="width: 24px; font-size: 15px;"></i>
+            <span style="font-size: 14px;">Data Peminjam</span>
+            <?php if ($user_role == 'staff'): ?>
+                <small style="font-size: 9px; color: #8a94a6; margin-left: auto;">(read)</small>
+            <?php endif; ?>
         </a>
     </li>
 
     <hr class="sidebar-divider" style="margin: 10px 20px;">
 
     <!-- ======================== -->
-    <!-- PEMERIKSAAN -->
+    <!-- TRANSAKSI -->
     <!-- ======================== -->
     <div class="sidebar-heading" style="padding: 12px 20px 6px; font-size: 11px; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">
-        Pemeriksaan
+        Transaksi
     </div>
 
+    <!-- Loans - Semua Role -->
     <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'pemeriksaan' ? 'active' : '' ?>" 
-           href="index.php?url=pemeriksaan"
+        <a class="nav-link <?= $current_url == 'loans' ? 'active' : '' ?>" 
+           href="index.php?url=loans"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-stethoscope" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Pemeriksaan Anak</span>
+            <i class="fas fa-hand-holding" style="width: 24px; font-size: 15px;"></i>
+            <span style="font-size: 14px;">Peminjaman</span>
         </a>
     </li>
 
+    <!-- Returns - Semua Role -->
     <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'imunisasi' ? 'active' : '' ?>" 
-           href="index.php?url=imunisasi"
+        <a class="nav-link <?= $current_url == 'returns' ? 'active' : '' ?>" 
+           href="index.php?url=returns"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-syringe" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Imunisasi Anak</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'imunisasi_ibu' ? 'active' : '' ?>"
-           href="index.php?url=imunisasi_ibu"
-           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-fw fa-syringe" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Imunisasi Ibu Hamil</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'pemeriksaan_ibu' ? 'active' : '' ?>" 
-           href="index.php?url=pemeriksaan_ibu"
-           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-fw fa-stethoscope" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Pemeriksaan Ibu Hamil</span>
+            <i class="fas fa-undo-alt" style="width: 24px; font-size: 15px;"></i>
+            <span style="font-size: 14px;">Pengembalian</span>
         </a>
     </li>
 
@@ -165,57 +131,53 @@ $user_role = $_SESSION['user']['role'] ?? '';
     </div>
 
     <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'laporan-kehadiran' ? 'active' : '' ?>"
-           href="index.php?url=laporan-kehadiran"
+        <a class="nav-link <?= $current_url == 'reports' ? 'active' : '' ?>" 
+           href="index.php?url=reports"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-clipboard-check" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Laporan Kehadiran</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'laporan-pemeriksaan' ? 'active' : '' ?>"
-           href="index.php?url=laporan-pemeriksaan"
-           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-stethoscope" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Laporan Pemeriksaan</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'laporan-imunisasi' ? 'active' : '' ?>"
-           href="index.php?url=laporan-imunisasi"
-           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-syringe" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Laporan Imunisasi</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'laporan-statistik' ? 'active' : '' ?>"
-           href="index.php?url=laporan-statistik"
-           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
-            <i class="fas fa-chart-bar" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Statistik Posyandu</span>
+            <i class="fas fa-file-alt" style="width: 24px; font-size: 15px;"></i>
+            <span style="font-size: 14px;">Laporan &amp; Export</span>
         </a>
     </li>
 
     <hr class="sidebar-divider" style="margin: 10px 20px;">
 
     <!-- ======================== -->
-    <!-- MANAJEMEN (HANYA ADMIN) -->
+    <!-- MANAJEMEN (Khusus Admin & Super Admin) -->
     <!-- ======================== -->
-    <?php if ($user_role == 'admin'): ?>
+    <?php if (in_array($user_role, ['admin', 'super_admin'])): ?>
     <div class="sidebar-heading" style="padding: 12px 20px 6px; font-size: 11px; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">
         Manajemen
     </div>
 
+    <!-- History - Admin & Super Admin -->
+    <li class="nav-item">
+        <a class="nav-link <?= $current_url == 'history' ? 'active' : '' ?>" 
+           href="index.php?url=history"
+           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
+            <i class="fas fa-history" style="width: 24px; font-size: 15px;"></i>
+            <span style="font-size: 14px;">Riwayat Barang</span>
+        </a>
+    </li>
+    <?php endif; ?>
+
+    <?php if ($user_role == 'super_admin'): ?>
+    <!-- Users - Super Admin Only -->
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'users' ? 'active' : '' ?>" 
            href="index.php?url=users"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
             <i class="fas fa-users-cog" style="width: 24px; font-size: 15px;"></i>
             <span style="font-size: 14px;">Manajemen User</span>
+        </a>
+    </li>
+
+    <!-- Settings - Super Admin Only -->
+    <li class="nav-item">
+        <a class="nav-link <?= $current_url == 'settings' ? 'active' : '' ?>" 
+           href="index.php?url=settings"
+           style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
+            <i class="fas fa-cog" style="width: 24px; font-size: 15px;"></i>
+            <span style="font-size: 14px;">Pengaturan</span>
         </a>
     </li>
     <?php endif; ?>
