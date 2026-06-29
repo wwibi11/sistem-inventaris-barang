@@ -31,15 +31,54 @@
             max-width: 100% !important;
         }
 
+        /* ==========================================
+           SIDEBAR - FIXED (TIDAK IKUT SCROLL)
+           ========================================== */
+        .sidebar {
+            background: #ffffff !important;
+            border-right: 1px solid #e8ecf1;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+            width: 250px !important;
+            min-width: 250px !important;
+            max-width: 250px !important;
+            padding-top: 0 !important;
+            padding-bottom: 20px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            z-index: 1000 !important;
+        }
+
+        /* SIDEBAR SCROLLBAR */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #c1c7cd;
+            border-radius: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #a0a6ad;
+        }
+
         #content-wrapper {
             background: #f8f9fc;
             flex: 1 !important;
             display: flex !important;
             flex-direction: column !important;
             min-height: 100vh !important;
-            width: 100% !important;
+            width: calc(100% - 250px) !important;
+            margin-left: 250px !important;
             overflow-x: hidden !important;
-            max-width: 100% !important;
+            max-width: calc(100% - 250px) !important;
         }
 
         #content {
@@ -52,26 +91,6 @@
         .container-fluid {
             overflow-x: hidden !important;
             max-width: 100% !important;
-        }
-
-        /* ==========================================
-           SIDEBAR
-           ========================================== */
-        .sidebar {
-            background: #ffffff !important;
-            border-right: 1px solid #e8ecf1;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.04);
-            width: 250px !important;
-            min-width: 250px !important;
-            max-width: 250px !important;
-            padding-top: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            height: 100vh !important;
-            position: sticky !important;
-            top: 0 !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
         }
 
         /* SIDEBAR NAV ITEM SPACING */
@@ -489,6 +508,11 @@
             }
             .bg-navbar {
                 padding: 8px 12px;
+            }
+            #content-wrapper {
+                width: 100% !important;
+                margin-left: 0 !important;
+                max-width: 100% !important;
             }
         }
 

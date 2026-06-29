@@ -192,8 +192,8 @@ $user_role = $_SESSION['user']['role'] ?? '';
     </li>
 
     <li class="nav-item">
-        <a class="nav-link <?= $current_url == 'statistik' ? 'active' : '' ?>"
-           href="index.php?url=statistik"
+        <a class="nav-link <?= $current_url == 'laporan-statistik' ? 'active' : '' ?>"
+           href="index.php?url=laporan-statistik"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
             <i class="fas fa-chart-bar" style="width: 24px; font-size: 15px;"></i>
             <span style="font-size: 14px;">Statistik Posyandu</span>

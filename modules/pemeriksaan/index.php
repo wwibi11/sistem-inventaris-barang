@@ -491,12 +491,15 @@ if ($id_kegiatan) {
                                 <td><?= htmlspecialchars($d['petugas'] ?? '-') ?></td>
                                 <td>
                                     <div class="d-flex justify-content-center" style="gap: 4px;">
-                                        <a href="index.php?url=pemeriksaan-edit&id=<?= $d['id'] ?>" class="btn-action-pemeriksaan edit">
+                                        <!-- EDIT → ARAHKAN KE PEMERIKSAAN-INPUT DENGAN ID_ANAK -->
+                                        <a href="index.php?url=pemeriksaan-input&id_kegiatan=<?= $id_kegiatan ?>&id_anak=<?= $d['id_anak'] ?>" 
+                                        class="btn-action-pemeriksaan edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        <!-- DELETE -->
                                         <a href="index.php?url=pemeriksaan-delete&id=<?= $d['id'] ?>" 
-                                           class="btn-action-pemeriksaan delete"
-                                           onclick="return confirm('Yakin ingin menghapus data pemeriksaan ini?')">
+                                        class="btn-action-pemeriksaan delete"
+                                        onclick="return confirm('Yakin ingin menghapus data pemeriksaan ini?')">
                                             <i class="fas fa-trash-alt"></i>
                                         </a>
                                     </div>
