@@ -13,8 +13,11 @@ require_once 'helpers/functions.php';
 // Initialize session
 initSession();
 
-// Check login
+// ============================================
+// CHECK LOGIN - REDIRECT KE LOGIN
+// ============================================
 if (!isset($_SESSION['user'])) {
+    $_SESSION['error'] = 'Silakan login terlebih dahulu!';
     header("Location: auth/login.php");
     exit;
 }

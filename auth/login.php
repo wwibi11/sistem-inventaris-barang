@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - E-Posyandu Bougenvil Belik</title>
+    <title>Login - Sistem Inventaris Barang</title>
 
     <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
     <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -59,7 +59,7 @@
         }
 
         /* Decorative badge */
-        .posyandu-badge {
+        .app-badge {
             display: inline-block;
             background: #e8f0fe;
             color: #2c6b9e;
@@ -93,13 +93,13 @@
             margin-bottom: 2px;
         }
 
-        .login-header .posyandu-name {
+        .login-header .app-name {
             color: #8a94a6;
             font-size: 13px;
             font-weight: 400;
         }
 
-        .login-header .posyandu-name i {
+        .login-header .app-name i {
             color: #2c6b9e;
             margin: 0 4px;
         }
@@ -223,6 +223,12 @@
             border-left: 3px solid #22c55e;
         }
 
+        .alert-info {
+            background: #eff6ff;
+            color: #1e40af;
+            border-left: 3px solid #3b82f6;
+        }
+
         /* Footer */
         .login-footer {
             text-align: center;
@@ -239,13 +245,45 @@
         }
 
         .login-footer small i {
-            color: #dc2626;
+            color: #2c6b9e;
             margin: 0 3px;
         }
 
         .login-footer .footer-brand {
             font-weight: 600;
             color: #2c6b9e;
+        }
+
+        /* Demo credentials info */
+        .demo-credentials {
+            background: #f8f9fc;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            border: 1px dashed #d1d5db;
+        }
+
+        .demo-credentials small {
+            display: block;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .demo-credentials .cred-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            font-size: 12px;
+        }
+
+        .demo-credentials .cred-row .label {
+            color: #6b7280;
+        }
+
+        .demo-credentials .cred-row .value {
+            color: #1a2634;
+            font-weight: 500;
+            font-family: monospace;
         }
 
         /* Responsive */
@@ -280,6 +318,11 @@
             .login-header .sub-title {
                 font-size: 13px;
             }
+
+            .demo-credentials .cred-row {
+                flex-direction: column;
+                gap: 2px;
+            }
         }
     </style>
 </head>
@@ -290,22 +333,22 @@
         
         <!-- Icon -->
         <div class="login-icon">
-            <i class="fas fa-heartbeat"></i>
+            <i class="fas fa-boxes"></i>
         </div>
 
         <!-- Header -->
         <div class="login-header">
-            <span class="posyandu-badge">
-                <i class="fas fa-star"></i> E-Posyandu
+            <span class="app-badge">
+                <i class="fas fa-star"></i> Inventaris
             </span>
-            <h3>Posyandu Bougenvil</h3>
+            <h3>Sistem Inventaris Barang</h3>
             <p class="sub-title">
-                <i class="fas fa-map-marker-alt" style="color: #2c6b9e; font-size: 12px;"></i> 
-                Belik
+                <i class="fas fa-building" style="color: #2c6b9e; font-size: 12px;"></i> 
+                Manajemen Aset & Peminjaman
             </p>
-            <p class="posyandu-name">
+            <p class="app-name">
                 <i class="fas fa-chevron-right" style="font-size: 10px;"></i> 
-                Sistem Informasi Pelayanan Kesehatan Ibu & Anak
+                Kelola barang, peminjaman, dan laporan dengan mudah
             </p>
             <div class="divider-line"></div>
         </div>
@@ -318,11 +361,19 @@
             </div>
         <?php endif; ?>
 
-        <!-- Success Alert (optional) -->
+        <!-- Success Alert -->
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success">
                 <i class="fas fa-check-circle"></i> 
                 <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Info Alert -->
+        <?php if (isset($_SESSION['info'])): ?>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                <?= $_SESSION['info']; unset($_SESSION['info']); ?>
             </div>
         <?php endif; ?>
 
@@ -334,7 +385,8 @@
                 <label for="email">Alamat Email</label>
                 <div class="input-group-icon">
                     <input type="email" name="email" id="email" class="form-control" 
-                           placeholder="contoh@email.com" required autofocus>
+                           placeholder="admin@inventaris.com" required autofocus
+                           value="<?= isset($_COOKIE['remember_email']) ? $_COOKIE['remember_email'] : '' ?>">
                     <i class="fas fa-envelope input-icon"></i>
                 </div>
             </div>
@@ -349,6 +401,16 @@
                 </div>
             </div>
 
+            <!-- Remember Me -->
+            <div class="form-group" style="margin-bottom: 16px;">
+                <div class="d-flex align-items-center">
+                    <input type="checkbox" name="remember" id="remember" style="margin-right: 8px;">
+                    <label for="remember" style="margin-bottom: 0; font-size: 13px; color: #6b7280; cursor: pointer;">
+                        Ingat saya
+                    </label>
+                </div>
+            </div>
+
             <!-- Button -->
             <button type="submit" class="btn-login">
                 <i class="fas fa-sign-in-alt"></i> Masuk ke Dashboard
@@ -356,16 +418,35 @@
 
         </form>
 
+        <!-- Demo Credentials -->
+        <div class="demo-credentials">
+            <small style="font-weight: 600; color: #1a2634; margin-bottom: 6px;">
+                <i class="fas fa-key"></i> Akun Demo
+            </small>
+            <div class="cred-row">
+                <span class="label">Super Admin</span>
+                <span class="value">superadmin@inventaris.com / password123</span>
+            </div>
+            <div class="cred-row">
+                <span class="label">Admin</span>
+                <span class="value">admin@inventaris.com / password123</span>
+            </div>
+            <div class="cred-row">
+                <span class="label">Staff</span>
+                <span class="value">staff@inventaris.com / password123</span>
+            </div>
+        </div>
+
         <!-- Footer -->
         <div class="login-footer">
             <small>
                 <span class="footer-brand">
-                    <i class="fas fa-heartbeat"></i> E-Posyandu Bougenvil Belik
+                    <i class="fas fa-boxes"></i> Sistem Inventaris Barang
                 </span>
                 <br>
-                &copy; <?= date('Y'); ?> · Dinas Kesehatan Kabupaten
+                &copy; <?= date('Y'); ?> · Versi 2.0
                 <i class="fas fa-circle" style="font-size: 4px; color: #d1d5db; margin: 0 6px; vertical-align: middle;"></i>
-                Versi 1.0
+                Dibuat dengan <i class="fas fa-heart" style="color: #dc2626;"></i>
             </small>
         </div>
 
@@ -374,6 +455,18 @@
 
 <script src="../vendor/jquery/jquery.min.js"></script>
 <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Auto focus ke email jika ada
+    $(document).ready(function() {
+        var email = $('#email').val();
+        if (email) {
+            $('#password').focus();
+        } else {
+            $('#email').focus();
+        }
+    });
+</script>
 
 </body>
 </html>
