@@ -196,55 +196,6 @@ returns (1) ─── (n) return_details
 ## STRUKTUR FOLDER
 
 ```
-inventaris-app/
-│
-├── assets/
-│   ├── css/              # Custom CSS
-│   ├── js/               # Custom JavaScript
-│   └── img/              # Gambar & logo
-│
-├── auth/
-│   ├── login.php         # Halaman login
-│   ├── logout.php        # Proses logout
-│   └── proses_login.php  # Proses autentikasi
-│
-├── config/
-│   └── database.php      # Konfigurasi database
-│
-├── helpers/
-│   ├── functions.php     # Fungsi global
-│   ├── cart.php          # Fungsi keranjang peminjaman
-│   └── validation.php    # Validasi input
-│
-├── modules/
-│   ├── dashboard/        # Dashboard & grafik
-│   ├── items/            # CRUD barang
-│   ├── categories/       # CRUD kategori
-│   ├── borrowers/        # CRUD peminjam
-│   ├── loans/            # Peminjaman & keranjang
-│   ├── returns/          # Pengembalian
-│   ├── reports/          # Laporan PDF & Excel
-│   ├── history/          # Riwayat barang
-│   ├── users/            # Manajemen user (Super Admin)
-│   └── settings/         # Pengaturan sistem (Super Admin)
-│
-├── views/
-│   ├── header.php        # Header HTML
-│   ├── sidebar.php       # Sidebar navigasi
-│   ├── topbar.php        # Topbar
-│   └── footer.php        # Footer & scripts
-│
-├── uploads/
-│   └── items/            # Tempat upload foto barang
-│
-├── vendor/               # Library pihak ketiga
-├── .htaccess
-├── index.php             # Routing utama
-├── database.sql          # Database schema
-└── README.md             # Dokumentasi
-```
-
----
 
 ## HAK AKSES
 
