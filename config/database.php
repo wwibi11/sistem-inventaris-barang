@@ -1,17 +1,16 @@
 <?php
-// config/database.php
-
 // ============================================
-// DATABASE CONFIGURATION
+// DATABASE CONFIGURATION & HELPER
 // ============================================
 
+// Konfigurasi Database
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'inventaris_db');
 define('DB_USER', 'root');
-define('DB_PASS', ''); // Ganti dengan password MySQL Anda
+define('DB_PASS', '');
 
 // ============================================
-// DATABASE CONNECTION FUNCTION
+// KONEKSI DATABASE
 // ============================================
 
 function getDbConnection() {
@@ -33,7 +32,7 @@ function getDbConnection() {
 }
 
 // ============================================
-// DATABASE HELPER FUNCTIONS
+// HELPER FUNCTIONS DATABASE
 // ============================================
 
 function query($sql, $params = []) {

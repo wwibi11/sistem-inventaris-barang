@@ -13,7 +13,7 @@ if (session_status() === PHP_SESSION_NONE) {
 // ============================================
 if (!isset($_SESSION['user'])) {
     $_SESSION['error'] = 'Silakan login terlebih dahulu!';
-    header("Location: auth/login.php");
+    header("Location: login.php");
     exit;
 }
 
@@ -33,7 +33,7 @@ $user = fetchOne(
 if (!$user || $user['is_active'] != 1) {
     session_destroy();
     $_SESSION['error'] = 'Akun Anda tidak aktif. Hubungi administrator!';
-    header("Location: auth/login.php");
+    header("Location: login.php");
     exit;
 }
 
@@ -43,9 +43,6 @@ if (!$user || $user['is_active'] != 1) {
 
 /**
  * Check if user has allowed role
- * 
- * @param array $allowedRoles List of allowed roles
- * @return void
  */
 function checkRole($allowedRoles = []) {
     $userRole = $_SESSION['user']['role'] ?? '';
@@ -135,19 +132,7 @@ function checkRole($allowedRoles = []) {
 }
 
 /**
- * Check if user has specific role
- * 
- * @param string $role Role name
- * @return bool
- */
-function hasRole($role) {
-    return isset($_SESSION['user']) && $_SESSION['user']['role'] === $role;
-}
-
-/**
  * Check if user is admin (includes super_admin)
- * 
- * @return bool
  */
 function isAdmin() {
     return isset($_SESSION['user']) && in_array($_SESSION['user']['role'], ['admin', 'super_admin']);
@@ -155,8 +140,6 @@ function isAdmin() {
 
 /**
  * Check if user is super admin
- * 
- * @return bool
  */
 function isSuperAdmin() {
     return isset($_SESSION['user']) && $_SESSION['user']['role'] === 'super_admin';
@@ -164,8 +147,6 @@ function isSuperAdmin() {
 
 /**
  * Check if user is staff
- * 
- * @return bool
  */
 function isStaff() {
     return isset($_SESSION['user']) && $_SESSION['user']['role'] === 'staff';
@@ -173,8 +154,6 @@ function isStaff() {
 
 /**
  * Get current user data
- * 
- * @return array|null
  */
 function currentUser() {
     return $_SESSION['user'] ?? null;
@@ -182,8 +161,6 @@ function currentUser() {
 
 /**
  * Get current user ID
- * 
- * @return int
  */
 function currentUserId() {
     return $_SESSION['user']['id'] ?? 0;
@@ -191,27 +168,11 @@ function currentUserId() {
 
 /**
  * Get current user role
- * 
- * @return string
  */
 function currentUserRole() {
     return $_SESSION['user']['role'] ?? 'staff';
 }
 
-/**
- * Check if current user has any of the allowed roles
- * 
- * @param array $roles List of allowed roles
- * @return bool
- */
-function hasAnyRole($roles = []) {
-    if (empty($roles)) {
-        return true;
-    }
-    return isset($_SESSION['user']) && in_array($_SESSION['user']['role'], $roles);
-}
-
 // ============================================
 // AKHIR FILE
 // ============================================
-// Tidak ada tag penutup ?> untuk mencegah output tidak sengaja
