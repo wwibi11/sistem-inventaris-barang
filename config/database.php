@@ -1,4 +1,6 @@
 <?php
+// config/database.php
+
 // ============================================
 // DATABASE CONFIGURATION & HELPER
 // ============================================
@@ -56,9 +58,17 @@ function fetchColumn($sql, $params = []) {
 
 function insert($table, $data) {
     $pdo = getDbConnection();
-    $columns = implode(', ', array_keys($data));
-    $placeholders = ':' . implode(', :', array_keys($data));
-    $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+    
+    // Ambil kolom dan tambahkan backtick untuk reserved keywords
+    $columns = array_keys($data);
+    $escapedColumns = array_map(function($col) {
+        return "`$col`";
+    }, $columns);
+    
+    $columnsStr = implode(', ', $escapedColumns);
+    $placeholders = ':' . implode(', :', $columns);
+    
+    $sql = "INSERT INTO $table ($columnsStr) VALUES ($placeholders)";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($data);
     return $pdo->lastInsertId();
@@ -68,7 +78,7 @@ function update($table, $data, $where, $whereParams = []) {
     $pdo = getDbConnection();
     $set = [];
     foreach ($data as $key => $value) {
-        $set[] = "$key = :$key";
+        $set[] = "`$key` = :$key";
     }
     $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE $where";
     $stmt = $pdo->prepare($sql);

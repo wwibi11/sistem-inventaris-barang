@@ -1,8 +1,9 @@
 <?php
-// ============================================
-// FUNCTIONS - SEMUA FUNGSI GLOBAL
-// ============================================
+// config/functions.php
 
+// ============================================
+// LOAD DATABASE
+// ============================================
 require_once __DIR__ . '/database.php';
 
 // ============================================
@@ -47,6 +48,14 @@ function getCurrentUser() {
 
 function getCurrentUserId() {
     return $_SESSION['user']['id'] ?? 0;
+}
+
+function currentUserId() {
+    return $_SESSION['user']['id'] ?? 0;
+}
+
+function currentUserRole() {
+    return $_SESSION['user']['role'] ?? 'staff';
 }
 
 // ============================================
@@ -218,11 +227,17 @@ function deleteFile($filePath) {
 // ============================================
 
 function redirect($url) {
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
     header("Location: $url");
     exit;
 }
 
 function redirectBack() {
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
     $url = $_SERVER['HTTP_REFERER'] ?? 'index.php?url=dashboard';
     header("Location: $url");
     exit;
@@ -273,4 +288,65 @@ function truncateText($text, $length = 100, $suffix = '...') {
 
 function randomString($length = 10) {
     return substr(str_shuffle('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, $length);
+}
+
+// ============================================
+// PAGINATION
+// ============================================
+
+function paginationLinks($url, $total, $page, $perPage = 10) {
+    $totalPages = ceil($total / $perPage);
+    if ($totalPages <= 1) return '';
+    
+    $html = '<ul class="pagination pagination-sm mb-0">';
+    
+    if ($page > 1) {
+        $html .= '<li class="page-item"><a class="page-link" href="' . $url . '&page=' . ($page - 1) . '">«</a></li>';
+    }
+    
+    $start = max(1, $page - 2);
+    $end = min($totalPages, $page + 2);
+    
+    if ($start > 1) {
+        $html .= '<li class="page-item"><a class="page-link" href="' . $url . '&page=1">1</a></li>';
+        if ($start > 2) $html .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
+    }
+    
+    for ($i = $start; $i <= $end; $i++) {
+        $active = $i == $page ? 'active' : '';
+        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="' . $url . '&page=' . $i . '">' . $i . '</a></li>';
+    }
+    
+    if ($end < $totalPages) {
+        if ($end < $totalPages - 1) $html .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="' . $url . '&page=' . $totalPages . '">' . $totalPages . '</a></li>';
+    }
+    
+    if ($page < $totalPages) {
+        $html .= '<li class="page-item"><a class="page-link" href="' . $url . '&page=' . ($page + 1) . '">»</a></li>';
+    }
+    
+    $html .= '</ul>';
+    return $html;
+}
+
+// config/database.php - Tambahkan fungsi ini
+
+function updateData($table, $data, $where, $whereValue) {
+    $pdo = getDbConnection();
+    $set = [];
+    $params = [];
+    
+    foreach ($data as $key => $value) {
+        $set[] = "`$key` = ?";
+        $params[] = $value;
+    }
+    
+    // Tambahkan where value
+    $params[] = $whereValue;
+    
+    $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE $where = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->rowCount();
 }
