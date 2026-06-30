@@ -1,19 +1,21 @@
 <?php
-// ============================================
-// PROSES LOGIN
-// ============================================
+// auth/proses_login.php
 
 session_start();
 
-// Load database connection
-require_once '../config/database.php';
+// Load database
+require_once __DIR__ . '/../config/database.php';
+
+// Debug: tampilkan error jika ada
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // Get input
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 $remember = isset($_POST['remember']);
 
-// Validate input
+// Validate
 if (empty($email) || empty($password)) {
     $_SESSION['error'] = 'Email dan password wajib diisi!';
     header("Location: login.php");
@@ -21,7 +23,7 @@ if (empty($email) || empty($password)) {
 }
 
 try {
-    // Get user by email
+    // Get user
     $user = fetchOne(
         "SELECT id, name, username, email, password, role, is_active 
          FROM users 
@@ -29,40 +31,25 @@ try {
         [$email]
     );
     
-    // Check if user exists
     if (!$user) {
         $_SESSION['error'] = 'Email tidak ditemukan!';
         header("Location: login.php");
         exit;
     }
     
-    // Check if user is active
     if ($user['is_active'] != 1) {
-        $_SESSION['error'] = 'Akun Anda tidak aktif. Hubungi administrator!';
+        $_SESSION['error'] = 'Akun Anda tidak aktif!';
         header("Location: login.php");
         exit;
     }
     
-    // Verify password
     if (!password_verify($password, $user['password'])) {
         $_SESSION['error'] = 'Password salah!';
         header("Location: login.php");
         exit;
     }
     
-    // ============================================
-    // LOGIN SUCCESS
-    // ============================================
-    
-    // Update last login
-    update(
-        'users',
-        ['last_login' => date('Y-m-d H:i:s')],
-        'id = ?',
-        [$user['id']]
-    );
-    
-    // Set session
+    // Login success
     $_SESSION['user'] = [
         'id' => $user['id'],
         'name' => $user['name'],
@@ -71,26 +58,21 @@ try {
         'role' => $user['role']
     ];
     
-    // Set user ID for triggers
-    $_SESSION['current_user_id'] = $user['id'];
+    // Update last login
+    $pdo = getDbConnection();
+    $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+    $stmt->execute([$user['id']]);
     
-    // Remember me (cookie)
     if ($remember) {
-        setcookie('remember_email', $email, time() + (86400 * 30), '/'); // 30 days
-    } else {
-        setcookie('remember_email', '', time() - 3600, '/');
+        setcookie('remember_email', $email, time() + (86400 * 30), '/');
     }
     
-    // Log activity
-    // logActivity('login', 'User login: ' . $user['email']);
-    
-    // Redirect to dashboard
     $_SESSION['success'] = 'Selamat datang, ' . $user['name'] . '!';
     header("Location: ../index.php?url=dashboard");
     exit;
     
 } catch (Exception $e) {
-    $_SESSION['error'] = 'Terjadi kesalahan: ' . $e->getMessage();
+    $_SESSION['error'] = 'Error: ' . $e->getMessage();
     header("Location: login.php");
     exit;
 }

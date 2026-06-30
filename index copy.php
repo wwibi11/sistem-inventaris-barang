@@ -14,7 +14,7 @@ require_once 'helpers/functions.php';
 initSession();
 
 // ============================================
-// CHECK LOGIN
+// CHECK LOGIN - REDIRECT KE LOGIN
 // ============================================
 if (!isset($_SESSION['user'])) {
     $_SESSION['error'] = 'Silakan login terlebih dahulu!';
@@ -41,7 +41,7 @@ $no_header_actions = [
     'delete', 'hapus', 'proses', 'download', 'import', 'export',
     'add_to_cart', 'update_cart', 'remove_cart', 'clear_cart',
     'get_items', 'get_borrowers', 'check_stock', 'print',
-    'ajax'
+    'ajax' // AJAX requests
 ];
 
 // ============================================
@@ -97,41 +97,49 @@ if (!file_exists($file)) {
 if (!in_array($action, $no_header_actions)) {
     $user_role = $_SESSION['user']['role'] ?? 'staff';
     
+    // Check if role exists
     if (!isset($role_access[$user_role])) {
         http_response_code(403);
         exit('403 - Role tidak valid');
     }
     
+    // Check module access
     $allowed_modules = $role_access[$user_role];
     if (!in_array('*', $allowed_modules) && !in_array($module, $allowed_modules)) {
         http_response_code(403);
         exit('403 - Akses ditolak. Module "' . $module . '" tidak diizinkan untuk role ' . $user_role);
     }
     
+    // Admin-only modules
     if (in_array($module, $admin_only_modules) && !in_array($user_role, ['admin', 'super_admin'])) {
         http_response_code(403);
         exit('403 - Akses ditolak. Module "' . $module . '" hanya untuk Admin.');
     }
     
+    // Staff read-only restrictions
     if ($user_role == 'staff') {
         $write_actions = ['create', 'edit', 'update', 'store', 'add', 'save', 'delete', 'hapus', 'remove'];
         
+        // Staff cannot write to items and borrowers
         if (in_array($module, ['items', 'borrowers']) && in_array($action, $write_actions)) {
             http_response_code(403);
             exit('403 - Akses ditolak. Staff hanya bisa melihat data.');
         }
         
+        // Staff cannot delete loans
         if ($module == 'loans' && in_array($action, ['delete', 'hapus', 'remove'])) {
             http_response_code(403);
             exit('403 - Akses ditolak. Staff tidak bisa menghapus data peminjaman.');
         }
     }
     
+    // Users management only for super_admin
     if ($module == 'users' && $user_role != 'super_admin') {
         http_response_code(403);
         exit('403 - Akses ditolak. Hanya Super Admin yang dapat mengelola user.');
     }
     
+    // Settings only for super_admin
     if ($module == 'settings' && $user_role != 'super_admin') {
         http_response_code(403);
         exit('403 - Akses ditolak. Hanya Super Admin yang dapat mengubah pengaturan.');
@@ -147,24 +155,23 @@ $current_role = $current_user['role'];
 $current_module = $module;
 $current_action = $action;
 
-// ============================================
-// SET CURRENT USER ID - COMMENT DULU KALAU ERROR
-// ============================================
-// if (function_exists('setCurrentUserId')) {
-//     setCurrentUserId($current_user['id']);
-// }
+// Set current user ID for triggers
+setCurrentUserId($current_user['id']);
 
 // ============================================
 // INCLUDE FILE
 // ============================================
 
+// If action without header, include directly
 if (in_array($action, $no_header_actions)) {
     include $file;
     exit;
 }
 
+// Include with header and sidebar
 include 'views/header.php';
 include 'views/sidebar.php';
 include 'views/topbar.php';
 include $file;
 include 'views/footer.php';
+?>

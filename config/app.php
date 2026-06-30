@@ -1,4 +1,6 @@
 <?php
+// config/app.php
+
 // ============================================
 // APPLICATION CONFIGURATION
 // ============================================
@@ -6,7 +8,7 @@
 // Application Info
 define('APP_NAME', 'Sistem Inventaris Barang');
 define('APP_VERSION', '2.0.0');
-define('APP_URL', 'http://localhost/inventaris-app/');
+define('APP_URL', 'http://inventaris-barang.test/');
 
 // Timezone
 date_default_timezone_set('Asia/Jakarta');
@@ -24,11 +26,11 @@ define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
 define('PER_PAGE', 15);
 
 // Loan Settings
-define('DEFAULT_LOAN_DURATION', 7); // days
+define('DEFAULT_LOAN_DURATION', 7);
 define('MAX_LOAN_PER_BORROWER', 5);
 
 // Security
-define('SESSION_TIMEOUT', 3600); // 1 hour
+define('SESSION_TIMEOUT', 3600);
 
 // ============================================
 // SESSION CONFIGURATION
@@ -39,26 +41,10 @@ function initSession() {
         session_start();
     }
     
-    // Regenerate session ID periodically
     if (!isset($_SESSION['created_at'])) {
         $_SESSION['created_at'] = time();
     } elseif (time() - $_SESSION['created_at'] > SESSION_TIMEOUT) {
         session_regenerate_id(true);
         $_SESSION['created_at'] = time();
     }
-}
-
-// ============================================
-// ERROR REPORTING
-// ============================================
-
-// Set error reporting based on environment
-if (defined('ENVIRONMENT') && ENVIRONMENT === 'development') {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-} else {
-    error_reporting(0);
-    ini_set('display_errors', 0);
-    ini_set('log_errors', 1);
-    ini_set('error_log', BASE_PATH . '/logs/error.log');
 }

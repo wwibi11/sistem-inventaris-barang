@@ -1,96 +1,206 @@
 <?php
+// ============================================
+// DASHBOARD - SISTEM INVENTARIS BARANG
+// ============================================
+
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../helpers/functions.php';
 
-// =======================
-// DATA UTAMA
-// =======================
-$total_anak       = $pdo->query("SELECT COUNT(*) FROM anak WHERE status='aktif'")->fetchColumn();
-$total_keluarga   = $pdo->query("SELECT COUNT(*) FROM keluarga")->fetchColumn();
-$total_kegiatan   = $pdo->query("SELECT COUNT(*) FROM kegiatan")->fetchColumn();
-$total_ibu_hamil  = $pdo->query("SELECT COUNT(*) FROM ibu_hamil WHERE status='Aktif'")->fetchColumn();
+// ============================================
+// DATA STATISTIK UTAMA
+// ============================================
 
-$today = date('Y-m-d');
+// Total Barang
+$total_items = fetchColumn("SELECT COUNT(*) FROM items");
 
-// =======================
-// KEHADIRAN HARI INI
-// =======================
-$stmt = $pdo->prepare("
-  SELECT COUNT(*) 
-  FROM kehadiran k
-  JOIN kegiatan g ON k.id_kegiatan = g.id
-  WHERE g.tanggal = ? AND k.status_hadir = 'hadir'
+// Total Barang Tersedia
+$total_tersedia = fetchColumn("SELECT COUNT(*) FROM items WHERE status = 'tersedia'");
+
+// Total Barang Dipinjam
+$total_dipinjam = fetchColumn("SELECT COUNT(*) FROM items WHERE status = 'dipinjam'");
+
+// Total Barang Rusak
+$total_rusak = fetchColumn("SELECT COUNT(*) FROM items WHERE `condition` = 'rusak'");
+
+// Total Barang Perbaikan
+$total_perbaikan = fetchColumn("SELECT COUNT(*) FROM items WHERE `condition` = 'perbaikan'");
+
+// Total Barang Hilang
+$total_hilang = fetchColumn("SELECT COUNT(*) FROM items WHERE status = 'hilang'");
+
+// Total Kategori
+$total_kategori = fetchColumn("SELECT COUNT(*) FROM categories");
+
+// Total Peminjam
+$total_peminjam = fetchColumn("SELECT COUNT(*) FROM borrowers WHERE is_active = 1");
+
+// Total Peminjaman Aktif
+$total_loans_active = fetchColumn("SELECT COUNT(*) FROM loans WHERE status IN ('dipinjam', 'terlambat')");
+
+// Total Peminjaman Terlambat
+$total_terlambat = fetchColumn("SELECT COUNT(*) FROM loans WHERE status = 'terlambat'");
+
+// Total Peminjaman Selesai
+$total_selesai = fetchColumn("SELECT COUNT(*) FROM loans WHERE status = 'dikembalikan'");
+
+// Total Stok Menipis
+$total_stok_menipis = fetchColumn("SELECT COUNT(*) FROM items WHERE quantity <= min_quantity AND status = 'tersedia'");
+
+// Total Stok Habis
+$total_stok_habis = fetchColumn("SELECT COUNT(*) FROM items WHERE quantity = 0");
+
+// ============================================
+// GRAFIK BARANG PER KATEGORI
+// ============================================
+$chart_categories = fetchAll("
+    SELECT 
+        c.name AS category_name,
+        c.icon,
+        COUNT(i.id) AS total_items,
+        SUM(i.quantity) AS total_stock,
+        SUM(CASE WHEN i.`condition` = 'baik' THEN 1 ELSE 0 END) AS good_items,
+        SUM(CASE WHEN i.`condition` = 'rusak' THEN 1 ELSE 0 END) AS damaged_items
+    FROM categories c
+    LEFT JOIN items i ON c.id = i.category_id
+    GROUP BY c.id
+    ORDER BY total_items DESC
 ");
-$stmt->execute([$today]);
-$hadir_hari_ini = $stmt->fetchColumn();
 
-// =======================
-// KEHADIRAN IBU HAMIL HARI INI
-// =======================
-$stmt = $pdo->prepare("
-  SELECT COUNT(*) 
-  FROM kehadiran_ibu_hamil k
-  JOIN kegiatan g ON k.id_kegiatan = g.id
-  WHERE g.tanggal = ? AND k.status_hadir = 'hadir'
+// ============================================
+// GRAFIK STATUS BARANG
+// ============================================
+$chart_status = fetchAll("
+    SELECT 
+        status,
+        COUNT(*) AS total
+    FROM items
+    GROUP BY status
 ");
-$stmt->execute([$today]);
-$hadir_ibu_hari_ini = $stmt->fetchColumn();
 
-// =======================
-// TOTAL PEMERIKSAAN & IMUNISASI
-// =======================
-$total_pemeriksaan = $pdo->query("SELECT COUNT(*) FROM pemeriksaan")->fetchColumn();
-$total_imunisasi = $pdo->query("SELECT COUNT(*) FROM imunisasi")->fetchColumn();
-$total_pemeriksaan_ibu = $pdo->query("SELECT COUNT(*) FROM pemeriksaan_ibu_hamil")->fetchColumn();
-$total_imunisasi_ibu = $pdo->query("SELECT COUNT(*) FROM imunisasi_ibu_hamil")->fetchColumn();
+// ============================================
+// GRAFIK PEMINJAMAN BULANAN
+// ============================================
+$chart_loans = fetchAll("
+    SELECT 
+        DATE_FORMAT(loan_date, '%b %Y') AS bulan,
+        COUNT(*) AS total_loans,
+        SUM(CASE WHEN status = 'dikembalikan' THEN 1 ELSE 0 END) AS returned,
+        SUM(CASE WHEN status IN ('dipinjam', 'terlambat') THEN 1 ELSE 0 END) AS active
+    FROM loans
+    WHERE loan_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+    GROUP BY YEAR(loan_date), MONTH(loan_date)
+    ORDER BY YEAR(loan_date), MONTH(loan_date)
+");
 
-// =======================
-// KEGIATAN TERBARU
-// =======================
-$kegiatan = $pdo->query("
-  SELECT * FROM kegiatan ORDER BY tanggal DESC LIMIT 5
-")->fetchAll(PDO::FETCH_ASSOC);
+// ============================================
+// PEMINJAMAN TERBARU
+// ============================================
+$recent_loans = fetchAll("
+    SELECT 
+        l.id,
+        l.code,
+        l.loan_date,
+        l.expected_return_date,
+        l.status,
+        l.total_items,
+        b.name AS borrower_name,
+        b.institution,
+        u.name AS staff_name
+    FROM loans l
+    LEFT JOIN borrowers b ON l.borrower_id = b.id
+    LEFT JOIN users u ON l.created_by = u.id
+    ORDER BY l.created_at DESC
+    LIMIT 5
+");
 
-// =======================
-// ANAK TERBARU
-// =======================
-$anak = $pdo->query("
-  SELECT a.*, k.nama_kepala_keluarga 
-  FROM anak a
-  JOIN keluarga k ON a.id_keluarga = k.id
-  ORDER BY a.created_at DESC LIMIT 5
-")->fetchAll(PDO::FETCH_ASSOC);
+// ============================================
+// STOK MENIPIS
+// ============================================
+$low_stock_items = fetchAll("
+    SELECT 
+        id,
+        code,
+        name,
+        quantity,
+        min_quantity,
+        category_id,
+        (SELECT name FROM categories WHERE id = items.category_id) AS category_name
+    FROM items
+    WHERE quantity <= min_quantity AND status = 'tersedia'
+    ORDER BY quantity ASC
+    LIMIT 5
+");
 
-// =======================
-// GRAFIK KEHADIRAN
-// =======================
-$grafik = $pdo->query("
-SELECT
-    DATE_FORMAT(g.tanggal,'%b %Y') AS bulan,
-    COUNT(*) AS total
-FROM kehadiran h
-JOIN kegiatan g ON g.id = h.id_kegiatan
-WHERE h.status_hadir = 'hadir'
-GROUP BY YEAR(g.tanggal), MONTH(g.tanggal)
-ORDER BY YEAR(g.tanggal), MONTH(g.tanggal)
-")->fetchAll(PDO::FETCH_ASSOC);
+// ============================================
+// BARANG TERBARU
+// ============================================
+$recent_items = fetchAll("
+    SELECT 
+        id,
+        code,
+        name,
+        quantity,
+        `condition`,
+        `status`,
+        category_id,
+        (SELECT name FROM categories WHERE id = items.category_id) AS category_name,
+        created_at
+    FROM items
+    ORDER BY created_at DESC
+    LIMIT 5
+");
 
-$labelGrafik = [];
-$dataGrafik  = [];
+// ============================================
+// DATA UNTUK CHART
+// ============================================
+$categoryLabels = [];
+$categoryData = [];
+$categoryColors = ['#2c6b9e', '#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997'];
 
-foreach($grafik as $g){
-    $labelGrafik[] = $g['bulan'];
-    $dataGrafik[]  = $g['total'];
+foreach ($chart_categories as $cat) {
+    $categoryLabels[] = $cat['category_name'];
+    $categoryData[] = $cat['total_items'];
+}
+
+$statusLabels = [];
+$statusData = [];
+$statusColors = ['#28a745', '#ffc107', '#dc3545', '#6c757d'];
+$statusMap = [
+    'tersedia' => 'Tersedia',
+    'dipinjam' => 'Dipinjam',
+    'perbaikan' => 'Perbaikan',
+    'hilang' => 'Hilang'
+];
+
+foreach ($chart_status as $st) {
+    $statusLabels[] = $statusMap[$st['status']] ?? $st['status'];
+    $statusData[] = $st['total'];
+}
+
+$loanLabels = [];
+$loanActive = [];
+$loanReturned = [];
+
+foreach ($chart_loans as $loan) {
+    $loanLabels[] = $loan['bulan'];
+    $loanActive[] = $loan['active'];
+    $loanReturned[] = $loan['returned'];
 }
 ?>
 
 <style>
-.dashboard-container { padding: 15px 0; }
+/* ============================================
+   DASHBOARD STYLE
+   ============================================ */
+.dashboard-container {
+    padding: 10px 0;
+}
 
 /* HEADER */
 .dashboard-header {
     background: #ffffff;
     border-radius: 12px;
-    padding: 22px 28px;
+    padding: 24px 28px;
     margin-bottom: 28px;
     border: 1px solid #e8ecf1;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -116,7 +226,10 @@ foreach($grafik as $g){
     margin-top: 4px;
 }
 
-.dashboard-header .header-sub i { color: #2c6b9e; }
+.dashboard-header .header-sub i {
+    color: #2c6b9e;
+}
+
 .dashboard-header .header-badge {
     background: #e8f0fe;
     color: #2c6b9e;
@@ -159,8 +272,10 @@ foreach($grafik as $g){
 
 .stat-card .stat-icon.primary { background: #2c6b9e; }
 .stat-card .stat-icon.success { background: #28a745; }
+.stat-card .stat-icon.warning { background: #ffc107; }
+.stat-card .stat-icon.danger { background: #dc3545; }
 .stat-card .stat-icon.info { background: #17a2b8; }
-.stat-card .stat-icon.pink { background: #e83e8c; }
+.stat-card .stat-icon.purple { background: #6f42c1; }
 
 .stat-card .stat-content { flex: 1; min-width: 0; }
 .stat-card .stat-label {
@@ -177,37 +292,13 @@ foreach($grafik as $g){
     color: #1a2634;
     line-height: 1.2;
 }
-
-/* QUICK INFO */
-.quick-info-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 16px;
-    margin-bottom: 28px;
-}
-
-.quick-info-item {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 16px 20px;
-    border: 1px solid #e8ecf1;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    text-align: center;
-}
-
-.quick-info-item .qi-value {
-    font-size: 22px;
-    font-weight: 700;
-    color: #2c6b9e;
-}
-
-.quick-info-item .qi-label {
+.stat-card .stat-sub {
     font-size: 12px;
     color: #8a94a6;
     margin-top: 2px;
 }
 
-/* CARD */
+/* CARD MODERN */
 .card-modern {
     background: #ffffff;
     border-radius: 12px;
@@ -218,7 +309,7 @@ foreach($grafik as $g){
 }
 
 .card-modern .card-header-custom {
-    padding: 12px 18px;
+    padding: 14px 18px;
     border-bottom: 1px solid #edf2f7;
     display: flex;
     align-items: center;
@@ -243,20 +334,21 @@ foreach($grafik as $g){
 }
 
 .card-modern .card-body-custom {
-    padding: 0;
+    padding: 16px 18px;
 }
 
 /* GRAFIK */
-.grafik-wrapper {
-    padding: 12px 16px;
+.chart-wrapper {
+    position: relative;
+    height: 250px;
 }
 
-.grafik-wrapper canvas {
-    max-height: 220px !important;
-    height: 220px !important;
+.chart-wrapper-sm {
+    position: relative;
+    height: 200px;
 }
 
-/* TABLE */
+/* TABLE ELEGANT */
 .table-elegant {
     margin: 0;
     font-size: 13px;
@@ -271,19 +363,22 @@ foreach($grafik as $g){
     letter-spacing: 0.3px;
     padding: 8px 14px;
     border-bottom: 2px solid #edf2f7;
-    position: sticky;
-    top: 0;
-    z-index: 2;
 }
 
 .table-elegant tbody td {
     padding: 8px 14px;
     color: #2d3748;
     border-bottom: 1px solid #f0f2f5;
+    vertical-align: middle;
 }
 
-.table-elegant tbody tr:last-child td { border-bottom: none; }
-.table-elegant tbody tr:hover { background: #fafbfc; }
+.table-elegant tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-elegant tbody tr:hover {
+    background: #fafbfc;
+}
 
 .table-elegant .empty-state {
     text-align: center;
@@ -297,88 +392,94 @@ foreach($grafik as $g){
     margin-bottom: 4px;
 }
 
-/* SISI KANAN - SCROLL */
-.side-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    height: 100%;
+/* BADGE */
+.badge-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
 }
+.badge-status.tersedia { background: #d1fae5; color: #047857; }
+.badge-status.dipinjam { background: #fef3c7; color: #92400e; }
+.badge-status.perbaikan { background: #dbeafe; color: #1d4ed8; }
+.badge-status.hilang { background: #fee2e2; color: #b91c1c; }
+.badge-status.terlambat { background: #fee2e2; color: #b91c1c; }
+.badge-status.dikembalikan { background: #d1fae5; color: #047857; }
 
-.side-wrapper .card-modern {
-    flex: 1;
-    overflow: hidden;
-    min-height: 0;
+.badge-condition {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
 }
+.badge-condition.baik { background: #d1fae5; color: #047857; }
+.badge-condition.rusak { background: #fee2e2; color: #b91c1c; }
+.badge-condition.perbaikan { background: #fef3c7; color: #92400e; }
 
-.side-wrapper .card-modern .card-body-custom {
-    max-height: 180px;
-    overflow-y: auto;
+.badge-stock {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
 }
-
-.side-wrapper .card-modern .card-body-custom::-webkit-scrollbar {
-    width: 4px;
-}
-
-.side-wrapper .card-modern .card-body-custom::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.side-wrapper .card-modern .card-body-custom::-webkit-scrollbar-thumb {
-    background: #c1c7cd;
-    border-radius: 4px;
-}
-
-.side-wrapper .card-modern .card-body-custom::-webkit-scrollbar-thumb:hover {
-    background: #a0a6ad;
-}
+.badge-stock.habis { background: #fee2e2; color: #b91c1c; }
+.badge-stock.menipis { background: #fef3c7; color: #92400e; }
+.badge-stock.cukup { background: #d1fae5; color: #047857; }
 
 /* RESPONSIVE */
-@media (max-width: 992px) {
-    .quick-info-grid { grid-template-columns: repeat(3, 1fr); }
-    .side-wrapper .card-modern .card-body-custom {
-        max-height: 140px;
-    }
-}
-
 @media (max-width: 768px) {
-    .dashboard-header { padding: 16px 20px; }
-    .dashboard-header .header-title { font-size: 18px; }
-    .dashboard-header .header-title small { display: block; margin-left: 0; margin-top: 4px; }
-    .stat-card .stat-value { font-size: 22px; }
-    .stat-card { padding: 16px 18px; }
-    .stat-card .stat-icon { width: 44px; height: 44px; font-size: 18px; margin-right: 12px; }
-    .quick-info-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .grafik-wrapper canvas { max-height: 160px !important; height: 160px !important; }
-}
-
-@media (max-width: 576px) {
-    .quick-info-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .quick-info-item { padding: 12px 14px; }
-    .quick-info-item .qi-value { font-size: 18px; }
-    .card-modern .card-header-custom { padding: 10px 14px; flex-wrap: wrap; }
+    .dashboard-header {
+        padding: 16px 20px;
+    }
+    .dashboard-header .header-title {
+        font-size: 18px;
+    }
+    .dashboard-header .header-title small {
+        display: block;
+        margin-left: 0;
+        margin-top: 4px;
+    }
+    .stat-card .stat-value {
+        font-size: 22px;
+    }
+    .stat-card {
+        padding: 16px 18px;
+    }
+    .stat-card .stat-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        margin-right: 12px;
+    }
+    .chart-wrapper {
+        height: 200px;
+    }
+    .chart-wrapper-sm {
+        height: 160px;
+    }
     .table-elegant thead th,
-    .table-elegant tbody td { padding: 6px 10px; font-size: 12px; }
-    .side-wrapper .card-modern .card-body-custom {
-        max-height: 120px;
+    .table-elegant tbody td {
+        padding: 6px 10px;
+        font-size: 12px;
     }
 }
 </style>
 
 <div class="dashboard-container">
 
-    <!-- HEADER -->
+    <!-- ============================================
+    HEADER
+    ============================================ -->
     <div class="dashboard-header">
         <div class="row align-items-center">
             <div class="col-md-8">
                 <div class="header-title">
                     <i class="fas fa-chart-pie" style="color: #2c6b9e; margin-right: 10px;"></i>
-                    Dashboard Posyandu
+                    Dashboard Inventaris
                     <small><i class="fas fa-calendar-alt"></i> <?= date('d M Y') ?></small>
                 </div>
                 <div class="header-sub">
-                    <i class="fas fa-home"></i> E-Posyandu Bougenvil · Belik
+                    <i class="fas fa-boxes"></i> Sistem Manajemen Inventaris Barang
                 </div>
             </div>
             <div class="col-md-4 text-md-right mt-2 mt-md-0">
@@ -389,159 +490,288 @@ foreach($grafik as $g){
         </div>
     </div>
 
-    <!-- QUICK INFO -->
-    <div class="quick-info-grid">
-        <div class="quick-info-item">
-            <div class="qi-value"><?= $total_pemeriksaan ?></div>
-            <div class="qi-label"><i class="fas fa-stethoscope"></i> Pemeriksaan Anak</div>
-        </div>
-        <div class="quick-info-item">
-            <div class="qi-value"><?= $total_imunisasi ?></div>
-            <div class="qi-label"><i class="fas fa-syringe"></i> Imunisasi Anak</div>
-        </div>
-        <div class="quick-info-item">
-            <div class="qi-value"><?= $total_pemeriksaan_ibu ?></div>
-            <div class="qi-label"><i class="fas fa-stethoscope"></i> Pemeriksaan Ibu</div>
-        </div>
-        <div class="quick-info-item">
-            <div class="qi-value"><?= $total_imunisasi_ibu ?></div>
-            <div class="qi-label"><i class="fas fa-syringe"></i> Imunisasi Ibu</div>
-        </div>
-        <div class="quick-info-item">
-            <div class="qi-value"><?= $hadir_hari_ini ?></div>
-            <div class="qi-label"><i class="fas fa-child"></i> Anak Hadir</div>
-        </div>
-        <div class="quick-info-item">
-            <div class="qi-value"><?= $hadir_ibu_hari_ini ?></div>
-            <div class="qi-label"><i class="fas fa-person-pregnant"></i> Ibu Hadir</div>
-        </div>
-    </div>
-
-    <!-- STAT CARD -->
+    <!-- ============================================
+    STATISTIK UTAMA
+    ============================================ -->
     <div class="row">
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stat-card">
-                <div class="stat-icon primary"><i class="fas fa-child"></i></div>
+                <div class="stat-icon primary"><i class="fas fa-boxes"></i></div>
                 <div class="stat-content">
-                    <div class="stat-label">Total Anak Aktif</div>
-                    <div class="stat-value"><?= $total_anak ?></div>
+                    <div class="stat-label">Total Barang</div>
+                    <div class="stat-value"><?= number_format($total_items) ?></div>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stat-card">
-                <div class="stat-icon success"><i class="fas fa-home"></i></div>
+                <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
                 <div class="stat-content">
-                    <div class="stat-label">Total Keluarga</div>
-                    <div class="stat-value"><?= $total_keluarga ?></div>
+                    <div class="stat-label">Tersedia</div>
+                    <div class="stat-value"><?= number_format($total_tersedia) ?></div>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stat-card">
-                <div class="stat-icon pink"><i class="fas fa-person-pregnant"></i></div>
+                <div class="stat-icon warning"><i class="fas fa-hand-holding"></i></div>
                 <div class="stat-content">
-                    <div class="stat-label">Ibu Hamil Aktif</div>
-                    <div class="stat-value"><?= $total_ibu_hamil ?></div>
+                    <div class="stat-label">Dipinjam</div>
+                    <div class="stat-value"><?= number_format($total_dipinjam) ?></div>
+                    <div class="stat-sub">
+                        <i class="fas fa-clock"></i> <?= number_format($total_loans_active) ?> peminjaman aktif
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stat-card">
-                <div class="stat-icon info"><i class="fas fa-calendar-alt"></i></div>
+                <div class="stat-icon danger"><i class="fas fa-exclamation-triangle"></i></div>
                 <div class="stat-content">
-                    <div class="stat-label">Total Kegiatan</div>
-                    <div class="stat-value"><?= $total_kegiatan ?></div>
+                    <div class="stat-label">Rusak / Hilang</div>
+                    <div class="stat-value"><?= number_format($total_rusak + $total_hilang) ?></div>
+                    <div class="stat-sub">
+                        <?= number_format($total_rusak) ?> rusak · <?= number_format($total_hilang) ?> hilang
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- GRAFIK + SIDE -->
+    <!-- ============================================
+    QUICK INFO
+    ============================================ -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-2">
+            <div class="stat-card" style="padding: 12px 16px;">
+                <div class="stat-icon purple" style="width: 40px; height: 40px; font-size: 16px; margin-right: 12px;">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Kategori</div>
+                    <div class="stat-value" style="font-size: 20px;"><?= number_format($total_kategori) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+            <div class="stat-card" style="padding: 12px 16px;">
+                <div class="stat-icon info" style="width: 40px; height: 40px; font-size: 16px; margin-right: 12px;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Peminjam</div>
+                    <div class="stat-value" style="font-size: 20px;"><?= number_format($total_peminjam) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+            <div class="stat-card" style="padding: 12px 16px;">
+                <div class="stat-icon warning" style="width: 40px; height: 40px; font-size: 16px; margin-right: 12px;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Terlambat</div>
+                    <div class="stat-value" style="font-size: 20px; color: #dc3545;"><?= number_format($total_terlambat) ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+            <div class="stat-card" style="padding: 12px 16px;">
+                <div class="stat-icon danger" style="width: 40px; height: 40px; font-size: 16px; margin-right: 12px;">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Stok Menipis</div>
+                    <div class="stat-value" style="font-size: 20px; color: #dc3545;"><?= number_format($total_stok_menipis + $total_stok_habis) ?></div>
+                    <div class="stat-sub"><?= number_format($total_stok_habis) ?> habis</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+    GRAFIK 2 KOLOM
+    ============================================ -->
     <div class="row">
-        <!-- GRAFIK - KIRI -->
-        <div class="col-md-8 mb-4">
-            <div class="card-modern" style="height: 100%;">
+        <!-- Grafik 1: Barang per Kategori -->
+        <div class="col-lg-6 mb-4">
+            <div class="card-modern">
                 <div class="card-header-custom">
                     <h6>
-                        <i class="fas fa-chart-line" style="color: #2c6b9e; margin-right: 8px;"></i>
-                        Grafik Kehadiran Anak
+                        <i class="fas fa-chart-bar" style="color: #2c6b9e; margin-right: 8px;"></i>
+                        Barang per Kategori
+                    </h6>
+                    <span class="badge-count"><?= count($categoryLabels) ?> kategori</span>
+                </div>
+                <div class="card-body-custom">
+                    <div class="chart-wrapper">
+                        <canvas id="chartCategory"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grafik 2: Status Barang -->
+        <div class="col-lg-6 mb-4">
+            <div class="card-modern">
+                <div class="card-header-custom">
+                    <h6>
+                        <i class="fas fa-chart-pie" style="color: #28a745; margin-right: 8px;"></i>
+                        Status Barang
+                    </h6>
+                    <span class="badge-count">Total <?= number_format($total_items) ?></span>
+                </div>
+                <div class="card-body-custom">
+                    <div class="chart-wrapper">
+                        <canvas id="chartStatus"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+    GRAFIK 3: Peminjaman Bulanan
+    ============================================ -->
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card-modern">
+                <div class="card-header-custom">
+                    <h6>
+                        <i class="fas fa-chart-line" style="color: #6f42c1; margin-right: 8px;"></i>
+                        Tren Peminjaman (6 Bulan Terakhir)
                     </h6>
                     <span class="badge-count">Bulanan</span>
                 </div>
-                <div class="card-body-custom grafik-wrapper">
-                    <canvas id="grafikKegiatan"></canvas>
+                <div class="card-body-custom">
+                    <div class="chart-wrapper" style="height: 220px;">
+                        <canvas id="chartLoans"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+    TABEL: PEMINJAMAN TERBARU & STOK MENIPIS
+    ============================================ -->
+    <div class="row">
+        <!-- Peminjaman Terbaru -->
+        <div class="col-lg-6 mb-4">
+            <div class="card-modern">
+                <div class="card-header-custom">
+                    <h6>
+                        <i class="fas fa-hand-holding" style="color: #2c6b9e; margin-right: 8px;"></i>
+                        Peminjaman Terbaru
+                    </h6>
+                    <span class="badge-count"><?= count($recent_loans) ?></span>
+                </div>
+                <div class="card-body-custom" style="padding: 0;">
+                    <table class="table table-elegant">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Peminjam</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recent_loans as $loan): ?>
+                            <tr>
+                                <td><small><?= $loan['code'] ?></small></td>
+                                <td><?= htmlspecialchars($loan['borrower_name']) ?></td>
+                                <td><?= getStatusBadge($loan['status']) ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                            <?php if (empty($recent_loans)): ?>
+                            <tr><td colspan="3" class="empty-state"><i class="fas fa-inbox"></i> Tidak ada data</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- SISI KANAN -->
-        <div class="col-md-4 mb-4">
-            <div class="side-wrapper">
-                <!-- Kegiatan Terbaru -->
-                <div class="card-modern">
-                    <div class="card-header-custom">
-                        <h6>
-                            <i class="fas fa-calendar-check" style="color: #17a2b8; margin-right: 8px;"></i>
-                            Kegiatan Terbaru
-                        </h6>
-                        <span class="badge-count"><?= count($kegiatan) ?></span>
-                    </div>
-                    <div class="card-body-custom">
-                        <table class="table table-elegant">
-                            <thead>
-                                <tr>
-                                    <th>Tanggal</th>
-                                    <th>Lokasi</th>
-                                    <th>Ke</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($kegiatan as $k): ?>
-                                <tr>
-                                    <td><?= date('d M', strtotime($k['tanggal'])) ?></td>
-                                    <td><?= htmlspecialchars($k['lokasi']) ?></td>
-                                    <td><?= $k['pertemuan_ke'] ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                                <?php if (!$kegiatan): ?>
-                                <tr><td colspan="3" class="empty-state"><i class="fas fa-inbox"></i> Tidak ada data</td></tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
+        <!-- Stok Menipis -->
+        <div class="col-lg-6 mb-4">
+            <div class="card-modern">
+                <div class="card-header-custom">
+                    <h6>
+                        <i class="fas fa-exclamation-triangle" style="color: #dc3545; margin-right: 8px;"></i>
+                        Stok Menipis
+                    </h6>
+                    <span class="badge-count"><?= count($low_stock_items) ?></span>
                 </div>
+                <div class="card-body-custom" style="padding: 0;">
+                    <table class="table table-elegant">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Nama</th>
+                                <th>Stok</th>
+                                <th>Min</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($low_stock_items as $item): ?>
+                            <tr>
+                                <td><small><?= $item['code'] ?></small></td>
+                                <td><?= htmlspecialchars($item['name']) ?></td>
+                                <td><span class="badge-stock <?= $item['quantity'] <= 0 ? 'habis' : 'menipis' ?>"><?= $item['quantity'] ?></span></td>
+                                <td><?= $item['min_quantity'] ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                            <?php if (empty($low_stock_items)): ?>
+                            <tr><td colspan="4" class="empty-state"><i class="fas fa-check-circle" style="color: #28a745;"></i> Semua stok aman</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <!-- Anak Terdaftar Terbaru -->
-                <div class="card-modern">
-                    <div class="card-header-custom">
-                        <h6>
-                            <i class="fas fa-user-plus" style="color: #28a745; margin-right: 8px;"></i>
-                            Anak Terdaftar Terbaru
-                        </h6>
-                        <span class="badge-count"><?= count($anak) ?></span>
-                    </div>
-                    <div class="card-body-custom">
-                        <table class="table table-elegant">
-                            <thead>
-                                <tr>
-                                    <th>Nama</th>
-                                    <th>Keluarga</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($anak as $a): ?>
-                                <tr>
-                                    <td><strong><?= htmlspecialchars($a['nama']) ?></strong></td>
-                                    <td><?= htmlspecialchars($a['nama_kepala_keluarga']) ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                                <?php if (!$anak): ?>
-                                <tr><td colspan="2" class="empty-state"><i class="fas fa-inbox"></i> Tidak ada data</td></tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
+    <!-- ============================================
+    BARANG TERBARU
+    ============================================ -->
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card-modern">
+                <div class="card-header-custom">
+                    <h6>
+                        <i class="fas fa-box" style="color: #17a2b8; margin-right: 8px;"></i>
+                        Barang Terbaru
+                    </h6>
+                    <span class="badge-count"><?= count($recent_items) ?></span>
+                </div>
+                <div class="card-body-custom" style="padding: 0;">
+                    <table class="table table-elegant">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Nama</th>
+                                <th>Kategori</th>
+                                <th>Stok</th>
+                                <th>Kondisi</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recent_items as $item): ?>
+                            <tr>
+                                <td><small><?= $item['code'] ?></small></td>
+                                <td><?= htmlspecialchars($item['name']) ?></td>
+                                <td><?= htmlspecialchars($item['category_name']) ?></td>
+                                <td><?= $item['quantity'] ?></td>
+                                <td><?= getConditionBadge($item['condition']) ?></td>
+                                <td><?= getStatusBadge($item['status']) ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                            <?php if (empty($recent_items)): ?>
+                            <tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i> Tidak ada data</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -549,58 +779,167 @@ foreach($grafik as $g){
 
 </div>
 
+<!-- ============================================
+CHART.JS
+============================================ -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('grafikKegiatan').getContext('2d');
+$(document).ready(function() {
 
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: <?= json_encode($labelGrafik) ?>,
-        datasets: [{
-            label: 'Jumlah Kehadiran',
-            data: <?= json_encode($dataGrafik) ?>,
-            fill: true,
-            backgroundColor: 'rgba(44, 107, 158, 0.08)',
-            borderColor: '#2c6b9e',
-            borderWidth: 2.5,
-            tension: 0.3,
-            pointBackgroundColor: '#2c6b9e',
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        aspectRatio: 3.5,
-        plugins: {
-            legend: { display: false }
+    // ============================================
+    // CHART 1: BARANG PER KATEGORI (Bar Chart)
+    // ============================================
+    const ctxCategory = document.getElementById('chartCategory').getContext('2d');
+    const categoryColors = ['#2c6b9e', '#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997'];
+
+    new Chart(ctxCategory, {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode($categoryLabels) ?>,
+            datasets: [{
+                label: 'Jumlah Barang',
+                data: <?= json_encode($categoryData) ?>,
+                backgroundColor: categoryColors.slice(0, <?= count($categoryLabels) ?>),
+                borderColor: '#ffffff',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
         },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1,
-                    font: { size: 10 },
-                    color: '#8a94a6'
-                },
-                grid: {
-                    color: 'rgba(0,0,0,0.05)',
-                    drawBorder: false
-                }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
             },
-            x: {
-                grid: { display: false },
-                ticks: {
-                    font: { size: 10 },
-                    color: '#8a94a6'
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: { size: 10 },
+                        color: '#8a94a6'
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 10 },
+                        color: '#8a94a6'
+                    }
                 }
             }
         }
-    }
+    });
+
+    // ============================================
+    // CHART 2: STATUS BARANG (Doughnut)
+    // ============================================
+    const ctxStatus = document.getElementById('chartStatus').getContext('2d');
+
+    new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+            labels: <?= json_encode($statusLabels) ?>,
+            datasets: [{
+                data: <?= json_encode($statusData) ?>,
+                backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#dc3545'],
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 12,
+                        usePointStyle: true,
+                        font: { size: 11 },
+                        color: '#4a5568'
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+
+    // ============================================
+    // CHART 3: TREN PEMINJAMAN (Line Chart)
+    // ============================================
+    const ctxLoans = document.getElementById('chartLoans').getContext('2d');
+
+    new Chart(ctxLoans, {
+        type: 'line',
+        data: {
+            labels: <?= json_encode($loanLabels) ?>,
+            datasets: [{
+                label: 'Aktif',
+                data: <?= json_encode($loanActive) ?>,
+                borderColor: '#ffc107',
+                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#ffc107',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }, {
+                label: 'Selesai',
+                data: <?= json_encode($loanReturned) ?>,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#28a745',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        font: { size: 11 },
+                        color: '#4a5568',
+                        padding: 16
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: { size: 10 },
+                        color: '#8a94a6'
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 10 },
+                        color: '#8a94a6'
+                    }
+                }
+            }
+        }
+    });
+
 });
 </script>
