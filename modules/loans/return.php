@@ -52,22 +52,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $return_items = $_POST['return_items'] ?? [];
     
     // Filter hanya yang dipilih
-    $selected_items = array_filter($return_items, function($item) {
-        return isset($item['selected']) && $item['selected'] == '1';
-    });
+    $selected_items = [];
+    foreach ($return_items as $detail_id => $item) {
+        if (isset($item['selected']) && $item['selected'] == '1') {
+            $selected_items[$detail_id] = $item;
+        }
+    }
     
     if (empty($selected_items)) {
         $_SESSION['error'] = 'Pilih minimal satu barang untuk dikembalikan!';
         redirect('index.php?url=loans/return&id=' . $id);
     }
     
+    // ============================================
+    // PROSES TRANSAKSI
+    // ============================================
     try {
-        beginTransaction();
+        $pdo = getDbConnection();
+        $pdo->beginTransaction();
         
         $return_code = generateReturnCode();
+        
+        // Pastikan kode unik
+        $check = fetchOne("SELECT id FROM returns WHERE code = ?", [$return_code]);
+        if ($check) {
+            $return_code = generateReturnCode();
+        }
+        
         $total_items = count($selected_items);
         
-        // Insert ke tabel returns
+        // Insert ke returns
         $return_id = insert('returns', [
             'code' => $return_code,
             'loan_id' => $id,
@@ -81,16 +95,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Gagal menyimpan data pengembalian!');
         }
         
-        // Proses setiap barang yang dikembalikan
+        // Proses setiap barang
         foreach ($selected_items as $detail_id => $item) {
             $condition = $item['condition'] ?? 'baik';
             $quantity = (int)($item['quantity'] ?? 1);
             
-            // Ambil data loan detail
             $detail = fetchOne("SELECT * FROM loan_details WHERE id = ?", [$detail_id]);
             if (!$detail) continue;
             
-            // Insert ke return_details
+            // Insert return_details
             $detail_id_return = insert('return_details', [
                 'return_id' => $return_id,
                 'loan_detail_id' => $detail_id,
@@ -103,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Gagal menyimpan detail pengembalian!');
             }
             
-            // Update stok barang
+            // Update stok
             $current_stock = fetchColumn("SELECT quantity FROM items WHERE id = ?", [$detail['item_id']]);
             $new_stock = $current_stock + $quantity;
             
@@ -116,18 +129,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $returned_quantity = $detail['returned_quantity'] + $quantity;
             
             if ($returned_quantity >= $detail['quantity']) {
-                // Semua barang sudah dikembalikan
                 updateData('loan_details', [
                     'status' => 'dikembalikan',
                     'returned_quantity' => $returned_quantity,
                     'condition_after' => $condition
                 ], 'id', $detail_id);
             } else {
-                // Sebagian barang dikembalikan
                 updateData('loan_details', [
                     'returned_quantity' => $returned_quantity,
                     'condition_after' => $condition,
-                    'status' => 'dipinjam' // masih ada sisa yang dipinjam
+                    'status' => 'dipinjam'
                 ], 'id', $detail_id);
             }
         }
@@ -140,28 +151,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         
         if ($remaining == 0) {
-            // Semua sudah dikembalikan
             updateData('loans', [
                 'status' => 'dikembalikan',
                 'actual_return_date' => $return_date
             ], 'id', $id);
-        } else {
-            // Masih ada yang dipinjam
-            updateData('loans', [
-                'status' => 'dipinjam'
-            ], 'id', $id);
         }
         
-        commit();
+        $pdo->commit();
         
         $_SESSION['success'] = 'Pengembalian ' . $total_items . ' barang berhasil! Kode: ' . $return_code;
         redirect('index.php?url=loans/detail&id=' . $id);
         
     } catch (Exception $e) {
         try {
-            rollback();
+            if (isset($pdo) && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
         } catch (Exception $e2) {
-            // Silent fail
+            // Ignore
         }
         
         $_SESSION['error'] = 'Error: ' . $e->getMessage();
@@ -173,7 +180,7 @@ ob_end_flush();
 ?>
 
 <!-- ============================================
-STYLE
+STYLE DAN HTML (SAMA SEPERTI SEBELUMNYA)
 ============================================ -->
 <style>
 .card-form { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
@@ -214,9 +221,6 @@ STYLE
 .table-return { font-size: 13px; }
 .table-return thead th { background: #f8fafc; color: #475569; font-size: 11px; text-transform: uppercase; padding: 10px 14px; border-bottom: 2px solid #eef2f7; }
 .table-return tbody td { padding: 10px 14px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
-
-.checkbox-item { width: 20px; height: 20px; accent-color: #2563eb; cursor: pointer; }
-.thumbnail-sm { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #eef2f7; background: #f8fafc; }
 </style>
 
 <div class="container-fluid px-4">
@@ -307,7 +311,6 @@ STYLE
                                     <input type="checkbox" class="item-checkbox" 
                                            name="return_items[<?= $d['id'] ?>][selected]" 
                                            value="1"
-                                           data-detail-id="<?= $d['id'] ?>"
                                            <?= $sisa > 0 ? '' : 'disabled' ?>>
                                 </td>
                                 <td>
@@ -330,9 +333,7 @@ STYLE
                                 </td>
                                 <td>
                                     <select name="return_items[<?= $d['id'] ?>][condition]" 
-                                            class="form-select-custom" 
-                                            style="width:130px;"
-                                            data-detail-id="<?= $d['id'] ?>">
+                                            class="form-select-custom" style="width:130px;">
                                         <option value="baik">Baik</option>
                                         <option value="rusak">Rusak</option>
                                         <option value="perbaikan">Perbaikan</option>
@@ -359,9 +360,6 @@ STYLE
     </div>
 </div>
 
-<!-- ============================================
-SCRIPT
-============================================ -->
 <script>
 function toggleAll(master) {
     const checkboxes = document.querySelectorAll('.item-checkbox');
@@ -390,7 +388,6 @@ function deselectAll() {
     document.getElementById('checkAll').checked = false;
 }
 
-// Validasi sebelum submit
 document.getElementById('returnForm').addEventListener('submit', function(e) {
     const checked = document.querySelectorAll('.item-checkbox:checked');
     if (checked.length === 0) {
@@ -399,13 +396,17 @@ document.getElementById('returnForm').addEventListener('submit', function(e) {
         return false;
     }
     
-    // Tampilkan konfirmasi
     const names = [];
     checked.forEach(cb => {
         const row = cb.closest('tr');
         const name = row.querySelector('td:nth-child(4)').textContent.trim();
         names.push(name);
     });
+    
+    // Disable tombol
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
     
     return confirm('Yakin ingin mengembalikan barang berikut?\n\n' + names.join('\n'));
 });

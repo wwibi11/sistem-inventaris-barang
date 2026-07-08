@@ -41,10 +41,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['item_id']
     $item_id = (int)$_GET['item_id'];
     $quantity = (int)($_GET['quantity'] ?? 1);
     
-    // Cek stok
     $item = fetchOne("SELECT quantity, name FROM items WHERE id = ?", [$item_id]);
     if ($item && $item['quantity'] >= $quantity) {
-        // Cek apakah sudah di keranjang
         $existing = fetchOne(
             "SELECT id, quantity FROM temp_loans WHERE session_id = ? AND item_id = ?",
             [$session_id, $item_id]
@@ -105,15 +103,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process'])) {
         redirect('index.php?url=loans/create');
     }
     
+    // ============================================
+    // PROSES TRANSAKSI
+    // ============================================
+    $error_message = null;
+    
     try {
-        // ============================================
-        // MULAI TRANSACTION
-        // ============================================
-        beginTransaction();
+        // Mulai transaksi
+        $pdo = getDbConnection();
+        $pdo->beginTransaction();
         
         $loan_code = generateLoanCode();
         $total_items = array_sum(array_column($cart, 'quantity'));
         
+        // Insert ke loans
         $loan_id = insert('loans', [
             'code' => $loan_code,
             'borrower_id' => $borrower_id,
@@ -125,8 +128,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process'])) {
             'created_by' => currentUserId()
         ]);
         
+        if (!$loan_id) {
+            throw new Exception('Gagal menyimpan data peminjaman!');
+        }
+        
+        // Proses setiap item di keranjang
         foreach ($cart as $item) {
-            insert('loan_details', [
+            // Insert ke loan_details
+            $detail_id = insert('loan_details', [
                 'loan_id' => $loan_id,
                 'item_id' => $item['item_id'],
                 'quantity' => $item['quantity'],
@@ -134,46 +143,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process'])) {
                 'status' => 'dipinjam'
             ]);
             
-            // ============================================
-            // PERBAIKAN: UPDATE STOK BARANG
-            // ============================================
-            // Ambil stok saat ini
+            if (!$detail_id) {
+                throw new Exception('Gagal menyimpan detail peminjaman!');
+            }
+            
+            // Update stok barang
             $current_stock = fetchColumn("SELECT quantity FROM items WHERE id = ?", [$item['item_id']]);
             $new_stock = $current_stock - $item['quantity'];
             
-            // Update dengan nilai integer
-            updateData('items', [
-                'quantity' => $new_stock
-            ], 'id', $item['item_id']);
+            if ($new_stock < 0) {
+                throw new Exception('Stok tidak mencukupi!');
+            }
+            
+            updateData('items', ['quantity' => $new_stock], 'id', $item['item_id']);
             
             // Update status barang jika stok habis
             if ($new_stock <= 0) {
-                updateData('items', [
-                    'status' => 'dipinjam'
-                ], 'id', $item['item_id']);
+                updateData('items', ['status' => 'dipinjam'], 'id', $item['item_id']);
             }
         }
         
+        // Kosongkan keranjang
         delete('temp_loans', 'session_id = ?', [$session_id]);
         
-        // ============================================
-        // COMMIT TRANSACTION
-        // ============================================
-        commit();
+        // Commit transaksi
+        $pdo->commit();
         
         $_SESSION['success'] = 'Peminjaman berhasil! Kode: ' . $loan_code;
         redirect('index.php?url=loans/detail&id=' . $loan_id);
         
     } catch (Exception $e) {
-        // ============================================
-        // ROLLBACK JIKA ADA ERROR
-        // ============================================
+        // Rollback jika ada error
         try {
-            rollback();
+            if (isset($pdo) && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
         } catch (Exception $e2) {
-            // Silent fail
+            // Ignore rollback error
         }
-        $_SESSION['error'] = 'Error: ' . $e->getMessage();
+        
+        $error_message = $e->getMessage();
+        $_SESSION['error'] = 'Error: ' . $error_message;
         redirect('index.php?url=loans/create');
     }
 }
@@ -181,6 +191,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process'])) {
 ob_end_flush();
 ?>
 
+<!-- ============================================
+STYLE DAN HTML (SAMA SEPERTI SEBELUMNYA)
+============================================ -->
 <style>
 .card-form { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 .card-form .card-body { padding: 20px; }
