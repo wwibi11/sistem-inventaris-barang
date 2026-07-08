@@ -24,7 +24,7 @@ if ($loan['status'] == 'dikembalikan') {
 }
 
 $details = fetchAll(
-    "SELECT ld.*, i.name as item_name, i.code as item_code
+    "SELECT ld.*, i.name as item_name, i.code as item_code, i.quantity as current_stock
      FROM loan_details ld
      LEFT JOIN items i ON ld.item_id = i.id
      WHERE ld.loan_id = ? AND ld.status = 'dipinjam'",
@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $return_code = generateReturnCode();
         
+        // Insert ke tabel returns
         $return_id = insert('returns', [
             'code' => $return_code,
             'loan_id' => $id,
@@ -59,10 +60,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'notes' => $notes
         ]);
         
+        if (!$return_id) {
+            throw new Exception('Gagal menyimpan data pengembalian!');
+        }
+        
+        // Insert ke tabel return_details
         foreach ($details as $d) {
             $condition = $conditions[$d['id']] ?? 'baik';
             
-            insert('return_details', [
+            $detail_id = insert('return_details', [
                 'return_id' => $return_id,
                 'loan_detail_id' => $d['id'],
                 'item_id' => $d['item_id'],
@@ -70,16 +76,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'condition' => $condition
             ]);
             
-            // Update stok barang
-            update(
-                'items',
-                ['quantity' => 'quantity + ' . $d['quantity']],
-                'id = ?',
-                [$d['item_id']]
-            );
+            if (!$detail_id) {
+                throw new Exception('Gagal menyimpan detail pengembalian!');
+            }
             
-            // Update status barang
-            update('items', ['status' => 'tersedia'], 'id = ?', [$d['item_id']]);
+            // ============================================
+            // PERBAIKAN: UPDATE STOK BARANG
+            // ============================================
+            // Ambil stok saat ini
+            $current_stock = fetchColumn("SELECT quantity FROM items WHERE id = ?", [$d['item_id']]);
+            $new_stock = $current_stock + $d['quantity'];
+            
+            // Update dengan nilai integer
+            $updated = updateData('items', [
+                'quantity' => $new_stock,
+                'status' => 'tersedia'
+            ], 'id', $d['item_id']);
             
             // Update loan detail
             updateData('loan_details', [
@@ -101,7 +113,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?url=loans/detail&id=' . $id);
         
     } catch (Exception $e) {
-        rollback();
+        try {
+            rollback();
+        } catch (Exception $e2) {
+            // Silent fail
+        }
+        
         $_SESSION['error'] = 'Error: ' . $e->getMessage();
         redirect('index.php?url=loans/return&id=' . $id);
     }
@@ -110,6 +127,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ob_end_flush();
 ?>
 
+<!-- ============================================
+STYLE (SAMA SEPERTI SEBELUMNYA)
+============================================ -->
 <style>
 .card-form { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 .card-form .card-body { padding: 24px 20px; }
@@ -134,12 +154,25 @@ ob_end_flush();
 .alert-custom.alert-success { background: #dcfce7 !important; color: #166534 !important; border-left-color: #22c55e !important; }
 .alert-custom.alert-danger { background: #fee2e2 !important; color: #991b1b !important; border-left-color: #dc2626 !important; }
 
+.badge-code {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
 .table-return { font-size: 13px; }
 .table-return thead th { background: #f8fafc; color: #475569; font-size: 11px; text-transform: uppercase; padding: 10px 14px; border-bottom: 2px solid #eef2f7; }
 .table-return tbody td { padding: 10px 14px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
 </style>
 
 <div class="container-fluid px-4">
+    <!-- Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-0 fw-bold text-dark">
@@ -154,6 +187,7 @@ ob_end_flush();
         </a>
     </div>
 
+    <!-- Alert -->
     <?php if ($success): ?>
     <div class="alert alert-custom alert-success alert-dismissible fade show" role="alert">
         <i class="fas fa-check-circle me-2"></i> <?= $success ?>
@@ -168,6 +202,7 @@ ob_end_flush();
     </div>
     <?php endif; ?>
 
+    <!-- Form -->
     <div class="card card-form">
         <div class="card-body">
             <form method="POST">
