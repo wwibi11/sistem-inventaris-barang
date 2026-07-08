@@ -106,6 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process'])) {
     }
     
     try {
+        // ============================================
+        // MULAI TRANSACTION
+        // ============================================
         beginTransaction();
         
         $loan_code = generateLoanCode();
@@ -131,30 +134,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process'])) {
                 'status' => 'dipinjam'
             ]);
             
-            // Update stok barang
-            update(
-                'items',
-                ['quantity' => 'quantity - ' . $item['quantity']],
-                'id = ?',
-                [$item['item_id']]
-            );
+            // ============================================
+            // PERBAIKAN: UPDATE STOK BARANG
+            // ============================================
+            // Ambil stok saat ini
+            $current_stock = fetchColumn("SELECT quantity FROM items WHERE id = ?", [$item['item_id']]);
+            $new_stock = $current_stock - $item['quantity'];
+            
+            // Update dengan nilai integer
+            updateData('items', [
+                'quantity' => $new_stock
+            ], 'id', $item['item_id']);
             
             // Update status barang jika stok habis
-            $stock = fetchColumn("SELECT quantity FROM items WHERE id = ?", [$item['item_id']]);
-            if ($stock <= 0) {
-                update('items', ['status' => 'dipinjam'], 'id = ?', [$item['item_id']]);
+            if ($new_stock <= 0) {
+                updateData('items', [
+                    'status' => 'dipinjam'
+                ], 'id', $item['item_id']);
             }
         }
         
         delete('temp_loans', 'session_id = ?', [$session_id]);
         
+        // ============================================
+        // COMMIT TRANSACTION
+        // ============================================
         commit();
         
         $_SESSION['success'] = 'Peminjaman berhasil! Kode: ' . $loan_code;
         redirect('index.php?url=loans/detail&id=' . $loan_id);
         
     } catch (Exception $e) {
-        rollback();
+        // ============================================
+        // ROLLBACK JIKA ADA ERROR
+        // ============================================
+        try {
+            rollback();
+        } catch (Exception $e2) {
+            // Silent fail
+        }
         $_SESSION['error'] = 'Error: ' . $e->getMessage();
         redirect('index.php?url=loans/create');
     }
