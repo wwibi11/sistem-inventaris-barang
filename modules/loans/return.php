@@ -19,12 +19,17 @@ if (!$loan) {
 }
 
 if ($loan['status'] == 'dikembalikan') {
-    $_SESSION['error'] = 'Peminjaman sudah dikembalikan!';
+    $_SESSION['error'] = 'Semua barang sudah dikembalikan!';
     redirect('index.php?url=loans');
 }
 
+// Ambil detail barang yang masih dipinjam
 $details = fetchAll(
-    "SELECT ld.*, i.name as item_name, i.code as item_code, i.quantity as current_stock
+    "SELECT ld.*, 
+            i.name as item_name, 
+            i.code as item_code, 
+            i.quantity as current_stock,
+            i.photo
      FROM loan_details ld
      LEFT JOIN items i ON ld.item_id = i.id
      WHERE ld.loan_id = ? AND ld.status = 'dipinjam'",
@@ -40,22 +45,34 @@ $error = $_SESSION['error'] ?? null;
 $success = $_SESSION['success'] ?? null;
 unset($_SESSION['error'], $_SESSION['success']);
 
+// Proses pengembalian per barang
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $return_date = $_POST['return_date'] ?? date('Y-m-d');
     $notes = trim($_POST['notes'] ?? '');
-    $conditions = $_POST['condition'] ?? [];
+    $return_items = $_POST['return_items'] ?? [];
+    
+    // Filter hanya yang dipilih
+    $selected_items = array_filter($return_items, function($item) {
+        return isset($item['selected']) && $item['selected'] == '1';
+    });
+    
+    if (empty($selected_items)) {
+        $_SESSION['error'] = 'Pilih minimal satu barang untuk dikembalikan!';
+        redirect('index.php?url=loans/return&id=' . $id);
+    }
     
     try {
         beginTransaction();
         
         $return_code = generateReturnCode();
+        $total_items = count($selected_items);
         
         // Insert ke tabel returns
         $return_id = insert('returns', [
             'code' => $return_code,
             'loan_id' => $id,
             'return_date' => $return_date,
-            'total_items' => count($details),
+            'total_items' => $total_items,
             'received_by' => currentUserId(),
             'notes' => $notes
         ]);
@@ -64,52 +81,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Gagal menyimpan data pengembalian!');
         }
         
-        // Insert ke tabel return_details
-        foreach ($details as $d) {
-            $condition = $conditions[$d['id']] ?? 'baik';
+        // Proses setiap barang yang dikembalikan
+        foreach ($selected_items as $detail_id => $item) {
+            $condition = $item['condition'] ?? 'baik';
+            $quantity = (int)($item['quantity'] ?? 1);
             
-            $detail_id = insert('return_details', [
+            // Ambil data loan detail
+            $detail = fetchOne("SELECT * FROM loan_details WHERE id = ?", [$detail_id]);
+            if (!$detail) continue;
+            
+            // Insert ke return_details
+            $detail_id_return = insert('return_details', [
                 'return_id' => $return_id,
-                'loan_detail_id' => $d['id'],
-                'item_id' => $d['item_id'],
-                'quantity' => $d['quantity'],
+                'loan_detail_id' => $detail_id,
+                'item_id' => $detail['item_id'],
+                'quantity' => $quantity,
                 'condition' => $condition
             ]);
             
-            if (!$detail_id) {
+            if (!$detail_id_return) {
                 throw new Exception('Gagal menyimpan detail pengembalian!');
             }
             
-            // ============================================
-            // PERBAIKAN: UPDATE STOK BARANG
-            // ============================================
-            // Ambil stok saat ini
-            $current_stock = fetchColumn("SELECT quantity FROM items WHERE id = ?", [$d['item_id']]);
-            $new_stock = $current_stock + $d['quantity'];
+            // Update stok barang
+            $current_stock = fetchColumn("SELECT quantity FROM items WHERE id = ?", [$detail['item_id']]);
+            $new_stock = $current_stock + $quantity;
             
-            // Update dengan nilai integer
-            $updated = updateData('items', [
+            updateData('items', [
                 'quantity' => $new_stock,
                 'status' => 'tersedia'
-            ], 'id', $d['item_id']);
+            ], 'id', $detail['item_id']);
             
             // Update loan detail
-            updateData('loan_details', [
-                'status' => 'dikembalikan',
-                'returned_quantity' => $d['quantity'],
-                'condition_after' => $condition
-            ], 'id', $d['id']);
+            $returned_quantity = $detail['returned_quantity'] + $quantity;
+            
+            if ($returned_quantity >= $detail['quantity']) {
+                // Semua barang sudah dikembalikan
+                updateData('loan_details', [
+                    'status' => 'dikembalikan',
+                    'returned_quantity' => $returned_quantity,
+                    'condition_after' => $condition
+                ], 'id', $detail_id);
+            } else {
+                // Sebagian barang dikembalikan
+                updateData('loan_details', [
+                    'returned_quantity' => $returned_quantity,
+                    'condition_after' => $condition,
+                    'status' => 'dipinjam' // masih ada sisa yang dipinjam
+                ], 'id', $detail_id);
+            }
         }
         
-        // Update loan status
-        updateData('loans', [
-            'status' => 'dikembalikan',
-            'actual_return_date' => $return_date
-        ], 'id', $id);
+        // Cek apakah semua barang sudah dikembalikan
+        $remaining = fetchColumn(
+            "SELECT COUNT(*) FROM loan_details 
+             WHERE loan_id = ? AND status = 'dipinjam'",
+            [$id]
+        );
+        
+        if ($remaining == 0) {
+            // Semua sudah dikembalikan
+            updateData('loans', [
+                'status' => 'dikembalikan',
+                'actual_return_date' => $return_date
+            ], 'id', $id);
+        } else {
+            // Masih ada yang dipinjam
+            updateData('loans', [
+                'status' => 'dipinjam'
+            ], 'id', $id);
+        }
         
         commit();
         
-        $_SESSION['success'] = 'Pengembalian berhasil! Kode: ' . $return_code;
+        $_SESSION['success'] = 'Pengembalian ' . $total_items . ' barang berhasil! Kode: ' . $return_code;
         redirect('index.php?url=loans/detail&id=' . $id);
         
     } catch (Exception $e) {
@@ -128,7 +173,7 @@ ob_end_flush();
 ?>
 
 <!-- ============================================
-STYLE (SAMA SEPERTI SEBELUMNYA)
+STYLE
 ============================================ -->
 <style>
 .card-form { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
@@ -169,6 +214,9 @@ STYLE (SAMA SEPERTI SEBELUMNYA)
 .table-return { font-size: 13px; }
 .table-return thead th { background: #f8fafc; color: #475569; font-size: 11px; text-transform: uppercase; padding: 10px 14px; border-bottom: 2px solid #eef2f7; }
 .table-return tbody td { padding: 10px 14px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+
+.checkbox-item { width: 20px; height: 20px; accent-color: #2563eb; cursor: pointer; }
+.thumbnail-sm { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #eef2f7; background: #f8fafc; }
 </style>
 
 <div class="container-fluid px-4">
@@ -176,10 +224,13 @@ STYLE (SAMA SEPERTI SEBELUMNYA)
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-0 fw-bold text-dark">
-                <i class="fas fa-undo-alt text-success me-2"></i>Proses Pengembalian
+                <i class="fas fa-undo-alt text-success me-2"></i>Pengembalian Barang
             </h4>
             <p class="text-muted small mt-1">
                 Peminjaman: <span class="badge-code"><?= htmlspecialchars($loan['code']) ?></span>
+            </p>
+            <p class="text-muted small">
+                <i class="fas fa-info-circle"></i> Pilih barang yang akan dikembalikan
             </p>
         </div>
         <a href="index.php?url=loans/detail&id=<?= $id ?>" class="btn btn-custom btn-custom-secondary btn-sm">
@@ -205,7 +256,7 @@ STYLE (SAMA SEPERTI SEBELUMNYA)
     <!-- Form -->
     <div class="card card-form">
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" id="returnForm">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
@@ -221,29 +272,72 @@ STYLE (SAMA SEPERTI SEBELUMNYA)
                     </div>
                 </div>
 
-                <h6 class="fw-bold mt-3 mb-2"><i class="fas fa-list text-primary me-2"></i>Daftar Barang yang Dikembalikan</h6>
+                <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-list text-primary me-2"></i>Daftar Barang yang Dipinjam</h6>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAll()">
+                            <i class="fas fa-check-double"></i> Pilih Semua
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">
+                            <i class="fas fa-times"></i> Batal Pilih
+                        </button>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table table-return">
                         <thead>
                             <tr>
+                                <th width="50"><input type="checkbox" id="checkAll" onchange="toggleAll(this)"></th>
+                                <th>Foto</th>
                                 <th>Kode</th>
                                 <th>Nama Barang</th>
-                                <th>Jumlah</th>
+                                <th>Jumlah Dipinjam</th>
+                                <th>Jumlah Dikembalikan</th>
+                                <th>Sisa</th>
                                 <th>Kondisi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($details as $d): ?>
+                            <?php foreach ($details as $d): 
+                                $sisa = $d['quantity'] - $d['returned_quantity'];
+                            ?>
                             <tr>
+                                <td>
+                                    <input type="checkbox" class="item-checkbox" 
+                                           name="return_items[<?= $d['id'] ?>][selected]" 
+                                           value="1"
+                                           data-detail-id="<?= $d['id'] ?>"
+                                           <?= $sisa > 0 ? '' : 'disabled' ?>>
+                                </td>
+                                <td>
+                                    <?php if ($d['photo']): ?>
+                                    <img src="<?= $d['photo'] ?>" class="thumbnail-sm">
+                                    <?php else: ?>
+                                    <div class="thumbnail-sm d-flex align-items-center justify-content-center bg-light">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?= htmlspecialchars($d['item_code']) ?></td>
                                 <td><?= htmlspecialchars($d['item_name']) ?></td>
-                                <td><?= $d['quantity'] ?></td>
+                                <td class="text-center"><?= $d['quantity'] ?></td>
+                                <td class="text-center"><?= $d['returned_quantity'] ?></td>
+                                <td class="text-center">
+                                    <span class="badge <?= $sisa > 0 ? 'bg-warning text-dark' : 'bg-success' ?>">
+                                        <?= $sisa ?>
+                                    </span>
+                                </td>
                                 <td>
-                                    <select name="condition[<?= $d['id'] ?>]" class="form-select-custom" style="width:150px;">
+                                    <select name="return_items[<?= $d['id'] ?>][condition]" 
+                                            class="form-select-custom" 
+                                            style="width:130px;"
+                                            data-detail-id="<?= $d['id'] ?>">
                                         <option value="baik">Baik</option>
                                         <option value="rusak">Rusak</option>
                                         <option value="perbaikan">Perbaikan</option>
                                     </select>
+                                    <input type="hidden" name="return_items[<?= $d['id'] ?>][quantity]" value="<?= $sisa ?>">
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -251,11 +345,68 @@ STYLE (SAMA SEPERTI SEBELUMNYA)
                     </table>
                 </div>
 
-                <button type="submit" class="btn btn-custom btn-custom-success">
-                    <i class="fas fa-check me-1"></i> Konfirmasi Pengembalian
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Catatan:</strong> Centang barang yang akan dikembalikan. Barang yang sudah dikembalikan semua (sisa 0) tidak bisa dipilih lagi.
+                </div>
+
+                <button type="submit" class="btn btn-custom btn-custom-success" id="submitBtn">
+                    <i class="fas fa-check me-1"></i> Kembalikan Barang Terpilih
                 </button>
                 <a href="index.php?url=loans/detail&id=<?= $id ?>" class="btn btn-custom btn-custom-secondary">Batal</a>
             </form>
         </div>
     </div>
 </div>
+
+<!-- ============================================
+SCRIPT
+============================================ -->
+<script>
+function toggleAll(master) {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(cb => {
+        if (!cb.disabled) {
+            cb.checked = master.checked;
+        }
+    });
+}
+
+function selectAll() {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(cb => {
+        if (!cb.disabled) {
+            cb.checked = true;
+        }
+    });
+    document.getElementById('checkAll').checked = true;
+}
+
+function deselectAll() {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+    document.getElementById('checkAll').checked = false;
+}
+
+// Validasi sebelum submit
+document.getElementById('returnForm').addEventListener('submit', function(e) {
+    const checked = document.querySelectorAll('.item-checkbox:checked');
+    if (checked.length === 0) {
+        e.preventDefault();
+        alert('Pilih minimal satu barang untuk dikembalikan!');
+        return false;
+    }
+    
+    // Tampilkan konfirmasi
+    const names = [];
+    checked.forEach(cb => {
+        const row = cb.closest('tr');
+        const name = row.querySelector('td:nth-child(4)').textContent.trim();
+        names.push(name);
+    });
+    
+    return confirm('Yakin ingin mengembalikan barang berikut?\n\n' + names.join('\n'));
+});
+</script>
