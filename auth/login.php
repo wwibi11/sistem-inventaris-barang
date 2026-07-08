@@ -1,8 +1,4 @@
-<?php
-session_start();
-// Load functions untuk flash message jika diperlukan
-require_once __DIR__ . '/../config/functions.php';
-?>
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>

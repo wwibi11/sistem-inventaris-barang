@@ -41,7 +41,7 @@ $_SESSION['user'] = [
 ];
 
 setCurrentUserId($user['id']);
-update('users', ['last_login' => date('Y-m-d H:i:s')], 'id = ?', [$user['id']]);
+updateData('users', ['last_login' => date('Y-m-d H:i:s')], 'id', $user['id']);
 
 if ($remember) {
     setcookie('remember_email', $email, time() + (86400 * 30), '/');

@@ -1,3 +1,11 @@
+<?php
+// views/header.php
+// PASTIKAN TIDAK ADA SPASI ATAU NEWLINE SEBELUM INI
+
+// Cek apakah user sudah login untuk menentukan title
+$pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>

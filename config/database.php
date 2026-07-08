@@ -59,30 +59,38 @@ function fetchColumn($sql, $params = []) {
 function insert($table, $data) {
     $pdo = getDbConnection();
     
-    // Ambil kolom dan tambahkan backtick untuk reserved keywords
     $columns = array_keys($data);
     $escapedColumns = array_map(function($col) {
         return "`$col`";
     }, $columns);
     
     $columnsStr = implode(', ', $escapedColumns);
-    $placeholders = ':' . implode(', :', $columns);
+    $placeholders = implode(', ', array_fill(0, count($data), '?'));
     
     $sql = "INSERT INTO $table ($columnsStr) VALUES ($placeholders)";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($data);
+    $stmt->execute(array_values($data));
     return $pdo->lastInsertId();
 }
 
 function update($table, $data, $where, $whereParams = []) {
     $pdo = getDbConnection();
+    
     $set = [];
+    $params = [];
+    
     foreach ($data as $key => $value) {
-        $set[] = "`$key` = :$key";
+        $set[] = "`$key` = ?";
+        $params[] = $value;
     }
+    
+    foreach ($whereParams as $value) {
+        $params[] = $value;
+    }
+    
     $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE $where";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(array_merge($data, $whereParams));
+    $stmt->execute($params);
     return $stmt->rowCount();
 }
 

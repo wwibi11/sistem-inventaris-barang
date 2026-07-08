@@ -4,8 +4,11 @@
 // ============================================
 // LOAD FUNCTIONS
 // ============================================
+
+
 require_once __DIR__ . '/../../config/functions.php';
 
+ob_start();
 // ============================================
 // PROSES FORM - DILAKUKAN DI ATAS
 // ============================================
@@ -99,6 +102,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?url=items/edit&id=' . $id);
     }
 }
+
+ob_end_flush();
 ?>
 
 <!-- ============================================

@@ -2,7 +2,7 @@
 // ============================================
 // MAIN ROUTING - SISTEM INVENTARIS BARANG
 // ============================================
-
+ob_start();
 session_start();
 
 // Load semua fungsi dari folder config
@@ -185,3 +185,4 @@ include 'views/sidebar.php';
 include 'views/topbar.php';
 include $file;
 include 'views/footer.php';
+ob_end_flush();

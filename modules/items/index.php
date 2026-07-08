@@ -177,20 +177,23 @@ unset($_SESSION['success'], $_SESSION['error']);
     font-size: 13px;
     transition: all 0.2s;
     border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
 }
 
 .btn-action:hover {
     transform: translateY(-1px);
+    text-decoration: none;
 }
 
 .btn-action.view { background: #dbeafe; color: #1e40af; }
-.btn-action.view:hover { background: #bfdbfe; }
+.btn-action.view:hover { background: #bfdbfe; color: #1e40af; }
 
 .btn-action.edit { background: #fef3c7; color: #92400e; }
-.btn-action.edit:hover { background: #fde68a; }
+.btn-action.edit:hover { background: #fde68a; color: #92400e; }
 
 .btn-action.delete { background: #fee2e2; color: #991b1b; }
-.btn-action.delete:hover { background: #fecaca; }
+.btn-action.delete:hover { background: #fecaca; color: #991b1b; }
 
 /* Pagination */
 .pagination-custom .page-item .page-link {
@@ -259,6 +262,64 @@ unset($_SESSION['success'], $_SESSION['error']);
     color: #991b1b;
 }
 
+/* Modal Delete */
+.modal-delete .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.modal-delete .modal-header {
+    border-bottom: none;
+    padding: 24px 24px 0 24px;
+}
+
+.modal-delete .modal-body {
+    padding: 16px 24px 24px 24px;
+}
+
+.modal-delete .modal-footer {
+    border-top: none;
+    padding: 0 24px 24px 24px;
+}
+
+.icon-delete-modal {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #fee2e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.icon-delete-modal i {
+    font-size: 32px;
+    color: #dc2626;
+}
+
+.info-barang-modal {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+}
+
+.info-barang-modal .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.info-barang-modal .value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .table-items thead th {
@@ -280,6 +341,31 @@ unset($_SESSION['success'], $_SESSION['error']);
         height: 32px;
     }
 }
+
+/* Tambahkan di style section index.php */
+
+/* Alert Success - Lebih jelas */
+.alert-custom.alert-success {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    border-left: 4px solid #22c55e !important;
+}
+
+.alert-custom.alert-success i {
+    color: #22c55e;
+}
+
+/* Alert Danger */
+.alert-custom.alert-danger {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border-left: 4px solid #dc2626 !important;
+}
+
+.alert-custom.alert-danger i {
+    color: #dc2626;
+}
+
 </style>
 
 <div class="container-fluid px-4">
@@ -454,11 +540,21 @@ unset($_SESSION['success'], $_SESSION['error']);
                                        class="btn-action edit" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="index.php?url=items/delete&id=<?= $item['id'] ?>" 
-                                       class="btn-action delete" title="Hapus"
-                                       onclick="return confirm('Yakin ingin menghapus data ini?')">
+                                    <!-- Tombol Hapus dengan data-id -->
+                                    <button type="button" 
+                                            class="btn-action delete" 
+                                            title="Hapus"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal"
+                                            data-id="<?= $item['id'] ?>"
+                                            data-code="<?= htmlspecialchars($item['code']) ?>"
+                                            data-name="<?= htmlspecialchars($item['name']) ?>"
+                                            data-category="<?= htmlspecialchars($item['category_name'] ?? '-') ?>"
+                                            data-quantity="<?= $item['quantity'] ?>"
+                                            data-condition="<?= $item['condition'] ?>"
+                                            data-photo="<?= $item['photo'] ?>">
                                         <i class="fas fa-trash"></i>
-                                    </a>
+                                    </button>
                                     <?php endif; ?>
                                 </div>
                             </td>
@@ -544,3 +640,118 @@ unset($_SESSION['success'], $_SESSION['error']);
         </div>
     </div>
 </div>
+
+<!-- ============================================
+MODAL DELETE
+============================================ -->
+<div class="modal fade modal-delete" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <!-- Icon -->
+                <div class="icon-delete-modal">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                
+                <!-- Judul -->
+                <h5 class="fw-bold text-dark mb-1">Konfirmasi Hapus</h5>
+                <p class="text-muted small mb-3">
+                    Apakah Anda yakin ingin menghapus data barang ini?
+                    <br>
+                    <span class="text-danger fw-bold">Tindakan ini tidak dapat dibatalkan!</span>
+                </p>
+                
+                <!-- Info Barang -->
+                <div class="info-barang-modal">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="label">Kode Barang</div>
+                            <div class="value" id="deleteCode">-</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="label">Kategori</div>
+                            <div class="value" id="deleteCategory">-</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="label">Nama Barang</div>
+                            <div class="value" id="deleteName">-</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="label">Stok</div>
+                            <div class="value" id="deleteQuantity">-</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="label">Kondisi</div>
+                            <div class="value" id="deleteCondition">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Peringatan Foto -->
+                <div class="alert alert-warning text-start small" id="deletePhotoWarning" style="display:none;">
+                    <i class="fas fa-image me-2"></i> 
+                    Foto barang juga akan dihapus secara permanen.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center gap-2">
+                <button type="button" class="btn btn-custom btn-custom-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Batal
+                </button>
+                <form id="deleteForm" method="POST" action="index.php?url=items/delete">
+                    <input type="hidden" name="id" id="deleteId" value="">
+                    <button type="submit" class="btn btn-custom btn-custom-danger">
+                        <i class="fas fa-trash me-1"></i> Ya, Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+SCRIPT MODAL DELETE
+============================================ -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteModal');
+    
+    deleteModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        
+        // Ambil data dari atribut button
+        const id = button.getAttribute('data-id');
+        const code = button.getAttribute('data-code');
+        const name = button.getAttribute('data-name');
+        const category = button.getAttribute('data-category');
+        const quantity = button.getAttribute('data-quantity');
+        const condition = button.getAttribute('data-condition');
+        const photo = button.getAttribute('data-photo');
+        
+        // Isi ke modal
+        document.getElementById('deleteId').value = id;
+        document.getElementById('deleteCode').textContent = code;
+        document.getElementById('deleteName').textContent = name;
+        document.getElementById('deleteCategory').textContent = category;
+        document.getElementById('deleteQuantity').textContent = quantity;
+        
+        // Kondisi
+        const conditionMap = {
+            'baik': '<span class="badge bg-success">Baik</span>',
+            'rusak': '<span class="badge bg-danger">Rusak</span>',
+            'perbaikan': '<span class="badge bg-warning text-dark">Perbaikan</span>'
+        };
+        document.getElementById('deleteCondition').innerHTML = conditionMap[condition] || condition;
+        
+        // Peringatan foto
+        const warning = document.getElementById('deletePhotoWarning');
+        if (photo) {
+            warning.style.display = 'block';
+        } else {
+            warning.style.display = 'none';
+        }
+    });
+});
+</script>
