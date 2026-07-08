@@ -1,252 +1,378 @@
 <?php
-require_once __DIR__ . '/../../config/database.php';
+// modules/users/edit.php
+
+ob_start();
+
+require_once __DIR__ . '/../../config/functions.php';
+
+// Redirect jika bukan super admin
+if (!isSuperAdmin()) {
+    $_SESSION['error'] = 'Akses ditolak! Hanya Super Admin yang dapat mengedit user.';
+    redirect('index.php?url=dashboard');
+}
 
 $id = $_GET['id'] ?? 0;
-
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$id]);
-$data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$data) {
-    die("Data tidak ditemukan");
+if ($id <= 0) {
+    $_SESSION['error'] = 'ID user tidak valid!';
+    redirect('index.php?url=users');
 }
 
-if (isset($_POST['update'])) {
-    if (!empty($_POST['password'])) {
-        $sql = "UPDATE users SET nama=?, email=?, password=?, role=? WHERE id=?";
-        $pdo->prepare($sql)->execute([
-            $_POST['nama'],
-            $_POST['email'],
-            password_hash($_POST['password'], PASSWORD_DEFAULT),
-            $_POST['role'],
-            $id
-        ]);
-    } else {
-        $sql = "UPDATE users SET nama=?, email=?, role=? WHERE id=?";
-        $pdo->prepare($sql)->execute([
-            $_POST['nama'],
-            $_POST['email'],
-            $_POST['role'],
-            $id
-        ]);
+// Ambil data user
+$user = fetchOne("SELECT * FROM users WHERE id = ?", [$id]);
+
+if (!$user) {
+    $_SESSION['error'] = 'Data user tidak ditemukan!';
+    redirect('index.php?url=users');
+}
+
+$error = $_SESSION['error'] ?? null;
+$success = $_SESSION['success'] ?? null;
+unset($_SESSION['error'], $_SESSION['success']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name'] ?? '');
+    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $password_confirm = $_POST['password_confirm'] ?? '';
+    $role = $_POST['role'] ?? 'staff';
+    $phone = trim($_POST['phone'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $is_active = isset($_POST['is_active']) ? 1 : 0;
+    
+    $errors = [];
+    if (empty($name)) $errors[] = 'Nama wajib diisi';
+    if (empty($username)) $errors[] = 'Username wajib diisi';
+    if (empty($email)) $errors[] = 'Email wajib diisi';
+    if ($password && $password !== $password_confirm) $errors[] = 'Konfirmasi password tidak cocok';
+    if ($password && strlen($password) < 6) $errors[] = 'Password minimal 6 karakter';
+    if (!isValidEmail($email)) $errors[] = 'Format email tidak valid';
+    if (!empty($phone) && !isValidPhone($phone)) $errors[] = 'Format telepon tidak valid';
+    
+    // Cek username unik (kecuali dirinya sendiri)
+    if (empty($errors)) {
+        $check = fetchOne("SELECT id FROM users WHERE username = ? AND id != ?", [$username, $id]);
+        if ($check) $errors[] = 'Username "' . $username . '" sudah digunakan';
     }
-    echo "
-    <script>
-        alert('User berhasil diperbarui');
-        location='index.php?url=users';
-    </script>
-    ";
-    exit;
+    
+    if (empty($errors)) {
+        $check = fetchOne("SELECT id FROM users WHERE email = ? AND id != ?", [$email, $id]);
+        if ($check) $errors[] = 'Email "' . $email . '" sudah digunakan';
+    }
+    
+    if (empty($errors)) {
+        $data = [
+            'name' => $name,
+            'username' => $username,
+            'email' => $email,
+            'role' => $role,
+            'phone' => $phone,
+            'address' => $address,
+            'is_active' => $is_active
+        ];
+        
+        if ($password) {
+            $data['password'] = password_hash($password, PASSWORD_DEFAULT);
+        }
+        
+        $updated = updateData('users', $data, 'id', $id);
+        
+        if ($updated !== false) {
+            $_SESSION['success'] = 'User "' . $name . '" berhasil diperbarui!';
+            redirect('index.php?url=users');
+        } else {
+            $_SESSION['error'] = 'Gagal menyimpan data. Silakan coba lagi.';
+            redirect('index.php?url=users/edit&id=' . $id);
+        }
+    } else {
+        $_SESSION['error'] = implode('<br>', $errors);
+        redirect('index.php?url=users/edit&id=' . $id);
+    }
 }
+
+ob_end_flush();
 ?>
 
 <style>
-.users-edit-container { padding: 10px 0; }
-
-/* Header */
-.users-edit-header {
-    background: #ffffff;
+/* ============================================
+   STYLE UNTUK HALAMAN EDIT USER
+   ============================================ */
+.card-form {
+    border: none;
     border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
-    border: 1px solid #e8ecf1;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-.users-edit-header .header-left h4 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a2634;
-    margin: 0;
+.card-form .card-body {
+    padding: 24px 20px;
 }
 
-.users-edit-header .header-left h4 i {
-    color: #2c6b9e;
-    margin-right: 10px;
-}
-
-.users-edit-header .header-left .sub-title {
-    font-size: 13px;
-    color: #8a94a6;
-    margin-top: 2px;
-}
-
-/* Card Form */
-.card-form-users-edit {
+.card-form .card-header {
     background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e8ecf1;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    overflow: hidden;
-}
-
-.card-form-users-edit .card-header-custom {
+    border-bottom: 1px solid #eef2f7;
     padding: 14px 20px;
-    border-bottom: 1px solid #edf2f7;
-    background: #f8f9fc;
+    border-radius: 12px 12px 0 0 !important;
 }
 
-.card-form-users-edit .card-header-custom h6 {
+.card-form .card-header h6 {
     font-weight: 600;
     color: #1a2634;
     margin: 0;
     font-size: 14px;
 }
 
-.card-form-users-edit .card-header-custom h6 i {
-    color: #2c6b9e;
-    margin-right: 8px;
-}
-
-.card-form-users-edit .card-body-custom {
-    padding: 22px 24px;
-}
-
-.form-group label {
+.form-label-custom {
     font-weight: 600;
-    color: #4a5568;
     font-size: 12px;
+    color: #475569;
     margin-bottom: 4px;
+    display: block;
 }
 
-.form-control, .custom-select {
+.form-label-custom .required {
+    color: #dc2626;
+}
+
+.form-control-custom,
+.form-select-custom {
     border-radius: 8px;
-    border: 1.5px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
     font-size: 13px;
-    padding: 10px 14px;
-    transition: all 0.2s ease;
     background: #fafbfc;
-    height: 44px;
+    transition: all 0.2s;
+    width: 100%;
 }
 
-.form-control:focus, .custom-select:focus {
-    border-color: #2c6b9e;
-    box-shadow: 0 0 0 3px rgba(44, 107, 158, 0.1);
+.form-control-custom:focus,
+.form-select-custom:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     background: #ffffff;
+    outline: none;
 }
 
-.text-muted-custom {
-    font-size: 12px;
-    color: #8a94a6;
+.form-text-custom {
+    font-size: 11px;
+    color: #94a3b8;
     margin-top: 4px;
 }
 
-.btn {
-    border-radius: 8px;
+.alert-custom {
+    border-radius: 10px;
+    border: none;
+    padding: 12px 18px;
     font-size: 13px;
-    font-weight: 600;
-    padding: 10px 24px;
-    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
 }
 
-.btn-primary {
-    background: #2c6b9e;
+.alert-custom.alert-success {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    border-left-color: #22c55e !important;
+}
+
+.alert-custom.alert-danger {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border-left-color: #dc2626 !important;
+}
+
+.btn-custom {
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.btn-custom-primary {
+    background: #2563eb;
+    color: #fff;
     border: none;
-    color: #ffffff;
 }
 
-.btn-primary:hover {
-    background: #1f507a;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(44, 107, 158, 0.25);
-    color: #ffffff;
+.btn-custom-primary:hover {
+    background: #1d4ed8;
+    color: #fff;
 }
 
-.btn-secondary {
-    background: #f0f4f8;
-    border: none;
-    color: #4a5568;
+.btn-custom-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
 }
 
-.btn-secondary:hover {
+.btn-custom-secondary:hover {
     background: #e2e8f0;
+    color: #1e293b;
+}
+
+.users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.users-header .header-title h4 {
+    font-size: 18px;
+    font-weight: 700;
     color: #1a2634;
+    margin: 0;
+}
+
+.users-header .header-title h4 i {
+    color: #2563eb;
+    margin-right: 10px;
+}
+
+.users-header .header-title .sub-title {
+    font-size: 13px;
+    color: #8a94a6;
+    margin-top: 2px;
 }
 
 @media (max-width: 768px) {
-    .users-edit-header {
+    .users-header {
         flex-direction: column;
         align-items: stretch;
-        padding: 16px;
-    }
-    .card-form-users-edit .card-body-custom {
-        padding: 16px;
     }
 }
 </style>
 
-<div class="users-edit-container">
-
-    <!-- HEADER -->
-    <div class="users-edit-header">
-        <div class="header-left">
+<div class="container-fluid px-4">
+    <!-- ============================================
+    HEADER
+    ============================================ -->
+    <div class="users-header">
+        <div class="header-title">
             <h4>
                 <i class="fas fa-user-edit"></i>
                 Edit User
             </h4>
             <div class="sub-title">
                 <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
-                Perbarui data pengguna sistem Posyandu Bougenvil Belik
+                Edit data user: <span class="badge bg-secondary"><?= htmlspecialchars($user['username']) ?></span>
             </div>
         </div>
-        <a href="index.php?url=users" style="background: #f0f4f8; color: #4a5568; padding: 10px 20px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; transition: all 0.2s;">
-            <i class="fas fa-arrow-left"></i> Kembali
+        <a href="index.php?url=users" class="btn btn-custom btn-custom-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Kembali
         </a>
     </div>
 
-    <!-- FORM -->
-    <div class="card-form-users-edit">
-        <div class="card-header-custom">
-            <h6>
-                <i class="fas fa-user"></i> Form Edit User
-            </h6>
+    <!-- ============================================
+    ALERT
+    ============================================ -->
+    <?php if ($success): ?>
+    <div class="alert alert-custom alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <?= $success ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+    <div class="alert alert-custom alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <?= $error ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
+    <!-- ============================================
+    FORM
+    ============================================ -->
+    <div class="card card-form">
+        <div class="card-header">
+            <h6><i class="fas fa-user me-2"></i>Form Edit User</h6>
         </div>
-        <div class="card-body-custom">
+        <div class="card-body">
             <form method="POST">
-                <div class="form-group">
-                    <label>Nama <span style="color: #dc2626;">*</span></label>
-                    <input type="text" name="nama" class="form-control" value="<?= htmlspecialchars($data['nama']) ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Email <span style="color: #dc2626;">*</span></label>
-                    <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($data['email']) ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Password Baru</label>
-                    <input type="password" name="password" class="form-control" placeholder="Kosongkan jika tidak ingin mengganti password">
-                    <div class="text-muted-custom">
-                        <i class="fas fa-info-circle"></i> Kosongkan jika tidak ingin mengganti password
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label-custom">
+                                Nama Lengkap <span class="required">*</span>
+                            </label>
+                            <input type="text" name="name" class="form-control-custom" 
+                                   value="<?= htmlspecialchars($user['name']) ?>" required>
+                        </div>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Role <span style="color: #dc2626;">*</span></label>
-                    <select name="role" class="custom-select" required>
-                        <option value="admin" <?= $data['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
-                        <option value="kader" <?= $data['role'] == 'kader' ? 'selected' : '' ?>>Kader</option>
-                        <option value="bidan" <?= $data['role'] == 'bidan' ? 'selected' : '' ?>>Bidan</option>
-                    </select>
-                </div>
-
-                <hr style="margin: 20px 0;">
-
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button type="submit" name="update" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Update User
-                    </button>
-                    <a href="index.php?url=users" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
-                    </a>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label-custom">
+                                Username <span class="required">*</span>
+                            </label>
+                            <input type="text" name="username" class="form-control-custom" 
+                                   value="<?= htmlspecialchars($user['username']) ?>" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label-custom">
+                                Email <span class="required">*</span>
+                            </label>
+                            <input type="email" name="email" class="form-control-custom" 
+                                   value="<?= htmlspecialchars($user['email']) ?>" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label-custom">Telepon</label>
+                            <input type="text" name="phone" class="form-control-custom" 
+                                   value="<?= htmlspecialchars($user['phone']) ?>" 
+                                   placeholder="08xxxxxxxxxx">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label-custom">Password Baru</label>
+                            <input type="password" name="password" class="form-control-custom" 
+                                   placeholder="Kosongkan jika tidak diubah">
+                            <div class="form-text-custom">Minimal 6 karakter</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label-custom">Konfirmasi Password</label>
+                            <input type="password" name="password_confirm" class="form-control-custom" 
+                                   placeholder="Ketik ulang password baru">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label-custom">Role <span class="required">*</span></label>
+                            <select name="role" class="form-select-custom" required>
+                                <option value="admin" <?= $user['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
+                                <option value="staff" <?= $user['role'] == 'staff' ? 'selected' : '' ?>>Staff</option>
+                                <option value="super_admin" <?= $user['role'] == 'super_admin' ? 'selected' : '' ?>>Super Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3 form-check mt-4">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="is_active" 
+                                   <?= $user['is_active'] == 1 ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="is_active">Akun Aktif</label>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label-custom">Alamat</label>
+                            <textarea name="address" class="form-control-custom" rows="2"><?= htmlspecialchars($user['address']) ?></textarea>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <hr>
+                        <button type="submit" class="btn btn-custom btn-custom-primary">
+                            <i class="fas fa-save me-1"></i> Update
+                        </button>
+                        <a href="index.php?url=users" class="btn btn-custom btn-custom-secondary">
+                            <i class="fas fa-times me-1"></i> Batal
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
-
 </div>
