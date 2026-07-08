@@ -94,6 +94,27 @@ function update($table, $data, $where, $whereParams = []) {
     return $stmt->rowCount();
 }
 
+// ============================================
+// UPDATE DATA - VERSI SIMPLER
+// ============================================
+function updateData($table, $data, $where, $whereValue) {
+    $pdo = getDbConnection();
+    $set = [];
+    $params = [];
+    
+    foreach ($data as $key => $value) {
+        $set[] = "`$key` = ?";
+        $params[] = $value;
+    }
+    
+    $params[] = $whereValue;
+    
+    $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE $where = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->rowCount();
+}
+
 function delete($table, $where, $params = []) {
     $pdo = getDbConnection();
     $sql = "DELETE FROM $table WHERE $where";

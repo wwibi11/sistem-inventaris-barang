@@ -59,7 +59,7 @@ function currentUserRole() {
 }
 
 // ============================================
-// CODE GENERATORS
+// CODE GENERATORS - DIPERBAIKI
 // ============================================
 
 function generateItemCode() {
@@ -80,12 +80,23 @@ function generateLoanCode() {
     return $prefix . $number;
 }
 
+// ============================================
+// PERBAIKAN: generateReturnCode() - PAKAI MAX
+// ============================================
 function generateReturnCode() {
     $year = date('Y');
     $month = date('m');
     $prefix = "RET-{$year}{$month}-";
-    $count = fetchColumn("SELECT COUNT(*) FROM returns WHERE code LIKE ?", [$prefix . '%']);
-    $number = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+    
+    // Ambil nomor terakhir dengan MAX
+    $last = fetchColumn(
+        "SELECT MAX(CAST(SUBSTRING(code, LENGTH(?) + 1) AS UNSIGNED)) 
+         FROM returns 
+         WHERE code LIKE ?",
+        [$prefix, $prefix . '%']
+    );
+    
+    $number = str_pad(($last ?? 0) + 1, 4, '0', STR_PAD_LEFT);
     return $prefix . $number;
 }
 
@@ -223,22 +234,39 @@ function deleteFile($filePath) {
 }
 
 // ============================================
-// REDIRECT
+// REDIRECT - DIPERBAIKI
 // ============================================
 
 function redirect($url) {
-    if (ob_get_level()) {
+    // Bersihkan semua output buffer
+    while (ob_get_level() > 0) {
         ob_end_clean();
     }
+    
+    // Cek apakah headers sudah terkirim
+    if (headers_sent($file, $line)) {
+        echo "<script>window.location.href='$url';</script>";
+        echo "<noscript><meta http-equiv='refresh' content='0;url=$url'></noscript>";
+        exit;
+    }
+    
     header("Location: $url");
     exit;
 }
 
 function redirectBack() {
-    if (ob_get_level()) {
+    while (ob_get_level() > 0) {
         ob_end_clean();
     }
+    
     $url = $_SERVER['HTTP_REFERER'] ?? 'index.php?url=dashboard';
+    
+    if (headers_sent($file, $line)) {
+        echo "<script>window.location.href='$url';</script>";
+        echo "<noscript><meta http-equiv='refresh' content='0;url=$url'></noscript>";
+        exit;
+    }
+    
     header("Location: $url");
     exit;
 }
@@ -330,23 +358,7 @@ function paginationLinks($url, $total, $page, $perPage = 10) {
     return $html;
 }
 
-// config/database.php - Tambahkan fungsi ini
-
-function updateData($table, $data, $where, $whereValue) {
-    $pdo = getDbConnection();
-    $set = [];
-    $params = [];
-    
-    foreach ($data as $key => $value) {
-        $set[] = "`$key` = ?";
-        $params[] = $value;
-    }
-    
-    // Tambahkan where value
-    $params[] = $whereValue;
-    
-    $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE $where = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    return $stmt->rowCount();
-}
+// ============================================
+// HAPUS updateData() DARI SINI!
+// updateData() SUDAH ADA DI database.php
+// ============================================
