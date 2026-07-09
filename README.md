@@ -1,6 +1,6 @@
-# 📦 SISTEM INVENTARIS BARANG
+## 📦 SISTEM INVENTARIS BARANG
 
-Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk membantu digitalisasi pengelolaan barang di sekolah, kantor, yayasan, atau UKM. Dilengkapi dengan multi-role akses, peminjaman, pengembalian, dashboard interaktif, dan export laporan.
+Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk membantu digitalisasi pengelolaan barang di sekolah, kantor, yayasan, atau UKM. Dilengkapi dengan multi-role akses, peminjaman, pengembalian, dashboard interaktif, export laporan, maintenance mode, dan pengaturan sistem dinamis.
 
 ---
 
@@ -27,7 +27,7 @@ Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk m
 
 ## PREVIEW
 
-![Dashboard](assets/img/screenshot/dashboard.png)
+![Dashboard](img/screenshot/dashboard.png)
 
 ---
 
@@ -51,16 +51,19 @@ Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk m
 - Akses penuh seluruh sistem
 - Manajemen user (CRUD)
 - Pengaturan sistem
+- Maintenance mode
 
 #### Admin
 - Mengelola seluruh data master
 - Mengelola peminjaman & pengembalian
 - Mengakses laporan & riwayat
+- Akses saat maintenance mode
 
 #### Staff
 - Melihat data barang & peminjam
 - Melakukan peminjaman & pengembalian
 - Mengakses laporan
+- Diblokir saat maintenance mode
 
 ---
 
@@ -79,11 +82,13 @@ Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk m
 - CRUD Kategori
 - Icon Kategori
 - Statistik per Kategori
+- Cek relasi sebelum hapus
 
 #### Data Peminjam
 - CRUD Data Peminjam
 - Tipe Peminjam (Internal/External/Student/Employee)
 - Status Aktif/Non-Aktif
+- Cek relasi peminjaman sebelum hapus
 
 ---
 
@@ -96,12 +101,14 @@ Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk m
 - Atur Tanggal Pinjam & Kembali
 - Status Peminjaman (Pending/Dipinjam/Dikembalikan/Terlambat/Hilang)
 - Riwayat Peminjaman
+- Partial Return (kembalikan per barang)
 
 #### Pengembalian
 - Proses Pengembalian Barang
 - Cek Kondisi Barang (Baik/Rusak/Perbaikan)
 - Update Stok Otomatis
 - Update Status Peminjaman
+- Partial Return support
 
 ---
 
@@ -116,22 +123,38 @@ Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk m
 - Laporan Peminjaman
 - Laporan Statistik
 
+#### Statistik
+- Grafik peminjaman bulanan
+- Top 10 barang paling sering dipinjam
+- Statistik per kategori
+- Ringkasan status peminjaman
+
 ---
 
 ### Riwayat & Audit Trail
 - Riwayat Perubahan Barang
 - Riwayat Peminjaman & Pengembalian
 - Tracking User Activity
+- Filter berdasarkan aksi, tanggal, dan pencarian
 
 ---
 
 ### Pengaturan Sistem
-- Nama Aplikasi
+- Nama Aplikasi (dinamis dari database)
 - Versi Aplikasi
 - Durasi Peminjaman Default
 - Maksimal Item per Peminjaman
 - Email Notifikasi
-- Mode Pemeliharaan
+- Maintenance Mode (Super Admin & Admin tetap bisa akses)
+- Aktifkan/Nonaktifkan Notifikasi
+
+---
+
+### Keamanan & Maintenance
+- **Maintenance Mode**: Blokir akses staff saat pemeliharaan
+- **Role-based Access**: Setiap role memiliki hak akses berbeda
+- **Session Management**: Auto logout setelah tidak aktif
+- **Password Hash**: Keamanan password dengan bcrypt
 
 ---
 
@@ -140,12 +163,13 @@ Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk m
 | Komponen | Teknologi |
 |----------|-----------|
 | Backend | PHP Native (OOP) |
-| Database | MySQL / MariaDB |
+| Database | MySQL / MariaDB / SQLite |
 | Frontend | Bootstrap 5 |
 | Library JS | jQuery 3, Font Awesome 5, Chart.js 3 |
 | Export PDF | DomPDF |
 | Export Excel | PhpSpreadsheet |
 | Server | Laragon / XAMPP |
+| Version Control | Git & GitHub |
 
 ---
 
@@ -166,7 +190,7 @@ Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk m
 
 ### Audit & Pengaturan
 - `item_history` - Riwayat perubahan barang
-- `settings` - Pengaturan sistem
+- `settings` - Pengaturan sistem (dinamis)
 
 ### Relasi Database
 ```
@@ -204,17 +228,13 @@ inventaris-app/
 │   └── img/              # Gambar & logo
 │
 ├── auth/
-│   ├── login.php         # Halaman login
+│   ├── login.php         # Halaman login (dengan nama dari settings)
 │   ├── logout.php        # Proses logout
 │   └── proses_login.php  # Proses autentikasi
 │
 ├── config/
-│   └── database.php      # Konfigurasi database
-│
-├── helpers/
-│   ├── functions.php     # Fungsi global
-│   ├── cart.php          # Fungsi keranjang peminjaman
-│   └── validation.php    # Validasi input
+│   ├── database.php      # Koneksi database (SQLite/MySQL)
+│   └── functions.php     # Semua fungsi global (helper)
 │
 ├── modules/
 │   ├── dashboard/        # Dashboard & grafik
@@ -229,17 +249,18 @@ inventaris-app/
 │   └── settings/         # Pengaturan sistem (Super Admin)
 │
 ├── views/
-│   ├── header.php        # Header HTML
-│   ├── sidebar.php       # Sidebar navigasi
-│   ├── topbar.php        # Topbar
-│   └── footer.php        # Footer & scripts
+│   ├── header.php        # Header HTML (responsive)
+│   ├── sidebar.php       # Sidebar navigasi (responsive)
+│   ├── topbar.php        # Topbar (dropdown user)
+│   └── footer.php        # Footer & scripts (toggle sidebar)
 │
 ├── uploads/
 │   └── items/            # Tempat upload foto barang
 │
 ├── vendor/               # Library pihak ketiga
+├── maintenance.php       # Halaman maintenance mode
 ├── .htaccess
-├── index.php             # Routing utama
+├── index.php             # Routing utama + maintenance check
 ├── database.sql          # Database schema
 └── README.md             # Dokumentasi
 ```
@@ -262,6 +283,7 @@ inventaris-app/
 | Riwayat | ✅ Full |
 | Manajemen User | ✅ Full |
 | Pengaturan | ✅ Full |
+| Maintenance Mode | ✅ Full Akses |
 
 ### Admin
 
@@ -277,6 +299,7 @@ inventaris-app/
 | Riwayat | ✅ Full |
 | Manajemen User | ❌ |
 | Pengaturan | ❌ |
+| Maintenance Mode | ✅ Full Akses |
 
 ### Staff
 
@@ -292,6 +315,7 @@ inventaris-app/
 | Riwayat | ❌ |
 | Manajemen User | ❌ |
 | Pengaturan | ❌ |
+| Maintenance Mode | ❌ Diblokir |
 
 **Keterangan:**
 - ✅ = Akses penuh
@@ -425,7 +449,7 @@ http://localhost/inventaris-app/
    ↓
 3. Klik "Kembalikan"
    ↓
-4. Pilih barang yang dikembalikan
+4. Pilih barang yang dikembalikan (bisa per barang / partial)
    ↓
 5. Cek kondisi barang (Baik/Rusak/Perbaikan)
    ↓
@@ -433,7 +457,7 @@ http://localhost/inventaris-app/
    ↓
 7. Stok barang otomatis bertambah
    ↓
-8. Status peminjaman berubah jadi "Dikembalikan"
+8. Status peminjaman berubah menjadi "Dikembalikan" (jika semua sudah kembali)
 ```
 
 ---
@@ -441,19 +465,25 @@ http://localhost/inventaris-app/
 ## SCREENSHOT
 
 ### Dashboard
-![Dashboard](assets/img/screenshot/dashboard.png)
+![Dashboard](img/screenshot/dashboard.png)
 
 ### Data Barang
-![Data Barang](assets/img/screenshot/items.png)
+![Data Barang](img/screenshot/items.png)
 
 ### Peminjaman
-![Peminjaman](assets/img/screenshot/loans.png)
+![Peminjaman](img/screenshot/loans.png)
 
 ### Keranjang Peminjaman
-![Keranjang](assets/img/screenshot/cart.png)
+![Keranjang](img/screenshot/cart.png)
 
 ### Laporan Export
-![Laporan](assets/img/screenshot/reports.png)
+![Laporan](img/screenshot/reports.png)
+
+### Pengaturan Sistem
+![Settings](img/screenshot/settings.png)
+
+### Maintenance Mode
+![Maintenance](img/screenshot/maintenance.png)
 
 ---
 
@@ -468,23 +498,30 @@ http://localhost/inventaris-app/
 - [x] CRUD Kategori
 - [x] CRUD Peminjam
 - [x] Peminjaman dengan Keranjang
-- [x] Pengembalian
+- [x] Partial Return (pengembalian per barang)
 - [x] Export PDF (DomPDF)
 - [x] Export Excel (PhpSpreadsheet)
 - [x] Riwayat Barang (Audit Trail)
-- [x] Pengaturan Sistem
+- [x] Pengaturan Sistem (dinamis dari database)
+- [x] Maintenance Mode
+- [x] Responsive Sidebar (mobile friendly)
+- [x] Nama Aplikasi dinamis dari database
+- [x] Multi-Role Access (Super Admin, Admin, Staff)
 
 ### Pengembangan Selanjutnya 🚀
 
 - [ ] Notifikasi Email untuk Peminjaman Terlambat
 - [ ] QR Code untuk Setiap Barang
-- [ ] Mobile Responsive Improvement
 - [ ] REST API untuk Integrasi
-- [ ] Backup Database Otomatis
-- [ ] Multi-Language Support
+- [ ] Backup & Restore Database Otomatis
 - [ ] Import Data dari Excel/CSV
 - [ ] Dashboard dengan Filter Periode
 - [ ] Report Grafik Peminjaman per Bulan
+- [ ] 2FA (Two Factor Authentication)
+- [ ] Activity Log (Login, Logout, CRUD)
+- [ ] Sinkronisasi Lokal - Cloud (Hybrid Mode)
+- [ ] Mobile App (Android/iOS)
+- [ ] Multi-Language Support
 
 ---
 
@@ -515,14 +552,14 @@ http://localhost/inventaris-app/
 ### 4. Export PDF Gagal
 
 **Solusi:**
-- Pastikan DomPDF terinstall
+- Pastikan DomPDF terinstall via Composer
 - Cek memory_limit di php.ini (min 128M)
 - Cek error log di `vendor/dompdf/dompdf/log`
 
 ### 5. Export Excel Gagal
 
 **Solusi:**
-- Pastikan PhpSpreadsheet terinstall
+- Pastikan PhpSpreadsheet terinstall via Composer
 - Cek extension `zip` di PHP aktif
 - Cek memory_limit (min 256M untuk data besar)
 
@@ -533,6 +570,21 @@ http://localhost/inventaris-app/
 - Password default: **password123**
 - Cek session di `auth/proses_login.php`
 - Pastikan database terhubung
+
+### 7. Maintenance Mode Tidak Berfungsi
+
+**Solusi:**
+- Pastikan tabel `settings` ada di database
+- Cek nilai `maintenance_mode` di tabel settings
+- Super Admin & Admin tetap bisa akses saat maintenance
+- Staff akan melihat halaman maintenance
+
+### 8. Sidebar Tidak Muncul di HP
+
+**Solusi:**
+- Pastikan JavaScript di `footer.php` berjalan
+- Klik tombol hamburger (garis tiga) di pojok kiri atas
+- Cek console browser untuk error JavaScript
 
 ---
 
