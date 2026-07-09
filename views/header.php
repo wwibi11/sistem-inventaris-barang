@@ -1,10 +1,10 @@
 <?php
-// Ambil nama aplikasi dari settings
-$app_name = getAppName();
-// Cek apakah user sudah login untuk menentukan title
-$pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
-?>
+// views/header.php - Tambahkan overlay setelah wrapper
 
+// Ambil nama aplikasi dari settings
+$app_name = function_exists('getAppName') ? getAppName() : 'Sistem Inventaris Barang';
+$pageTitle = isset($pageTitle) ? $pageTitle : $app_name;
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -12,7 +12,7 @@ $pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="assets/img/logo/logo.png" rel="icon">
-    <title>Sistem Inventaris Barang</title>
+    <title><?= $pageTitle ?></title>
 
     <!-- Font Awesome -->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
@@ -23,11 +23,17 @@ $pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
     
     <style>
         /* ============================================
-           FIX SCROLL SIDEBAR
+           RESET & BASE
            ============================================ */
+        * {
+            box-sizing: border-box;
+        }
+
         body, html {
             overflow-x: hidden !important;
             width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         #wrapper {
@@ -39,15 +45,33 @@ $pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
         }
 
         /* ==========================================
-           SIDEBAR - FIXED
+           OVERLAY SIDEBAR - TAMBAHKAN INI
+           ========================================== */
+        .sidebar-overlay {
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgba(0, 0, 0, 0.4) !important;
+            z-index: 1039 !important;
+            transition: all 0.3s ease !important;
+        }
+        .sidebar-overlay.show {
+            display: block !important;
+        }
+
+        /* ==========================================
+           SIDEBAR - RESPONSIVE
            ========================================== */
         .sidebar {
             background: #ffffff !important;
             border-right: 1px solid #e8ecf1;
             box-shadow: 2px 0 8px rgba(0,0,0,0.04);
-            width: 250px !important;
-            min-width: 250px !important;
-            max-width: 250px !important;
+            width: 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
             padding-top: 0 !important;
             padding-bottom: 20px !important;
             display: flex !important;
@@ -58,9 +82,37 @@ $pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
             left: 0 !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            z-index: 1000 !important;
+            z-index: 1040 !important;
+            transition: transform 0.3s ease !important;
         }
 
+        /* Sidebar - Mobile (tersembunyi) */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%) !important;
+            }
+            .sidebar.show {
+                transform: translateX(0) !important;
+            }
+            .sidebar-overlay.show {
+                display: block !important;
+            }
+        }
+
+        /* Sidebar - Desktop (selalu terbuka) */
+        @media (min-width: 769px) {
+            .sidebar {
+                transform: translateX(0) !important;
+            }
+            .sidebar-overlay {
+                display: none !important;
+            }
+            #sidebarToggleTop {
+                display: none !important;
+            }
+        }
+
+        /* Sidebar scrollbar */
         .sidebar::-webkit-scrollbar {
             width: 4px;
         }
@@ -71,104 +123,8 @@ $pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
             background: #c1c7cd;
             border-radius: 4px;
         }
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #a0a6ad;
-        }
 
-        #content-wrapper {
-            background: #f8f9fc;
-            flex: 1 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            min-height: 100vh !important;
-            width: calc(100% - 250px) !important;
-            margin-left: 250px !important;
-            overflow-x: hidden !important;
-            max-width: calc(100% - 250px) !important;
-        }
-
-        #content {
-            flex: 1 !important;
-            padding: 0 20px !important;
-            overflow-x: hidden !important;
-            max-width: 100% !important;
-        }
-
-        .container-fluid {
-            overflow-x: hidden !important;
-            max-width: 100% !important;
-        }
-
-        /* SIDEBAR NAV ITEM */
-        .sidebar .nav-item .nav-link {
-            padding: 11px 16px !important;
-            margin: 3px 12px !important;
-            border-radius: 10px !important;
-            font-size: 14px !important;
-            transition: all 0.2s ease !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            color: #4a5568 !important;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .sidebar .nav-item .nav-link i {
-            width: 22px !important;
-            text-align: center !important;
-            flex-shrink: 0 !important;
-            color: #8a94a6;
-            font-size: 15px;
-        }
-
-        .sidebar .nav-item .nav-link span {
-            display: inline-block !important;
-            max-width: 150px !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-        }
-
-        .sidebar .nav-item .nav-link:hover {
-            background: #f0f4f8 !important;
-            color: #2c6b9e !important;
-        }
-
-        .sidebar .nav-item .nav-link:hover i {
-            color: #2c6b9e;
-        }
-
-        .sidebar .nav-item .nav-link.active {
-            background: #e8f0fe !important;
-            color: #2c6b9e !important;
-            font-weight: 600;
-        }
-
-        .sidebar .nav-item .nav-link.active i {
-            color: #2c6b9e;
-        }
-
-        .sidebar .sidebar-heading {
-            padding: 10px 20px 4px !important;
-            font-size: 10px !important;
-            color: #8a94a6 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-            font-weight: 600 !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-        }
-
-        .sidebar .sidebar-divider {
-            margin: 4px 16px !important;
-            border-color: #edf2f7 !important;
-        }
-
-        /* SIDEBAR BRAND */
+        /* Sidebar brand */
         .sidebar .sidebar-brand {
             padding: 14px 16px;
             border-bottom: 1px solid #edf2f7;
@@ -211,142 +167,144 @@ $pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
             color: #2c6b9e;
         }
 
-        /* TOPBAR */
+        /* Sidebar nav item */
+        .sidebar .nav-item .nav-link {
+            padding: 11px 16px !important;
+            margin: 3px 12px !important;
+            border-radius: 10px !important;
+            font-size: 14px !important;
+            transition: all 0.2s ease !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            color: #4a5568 !important;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar .nav-item .nav-link i {
+            width: 22px !important;
+            text-align: center !important;
+            flex-shrink: 0 !important;
+            color: #8a94a6;
+            font-size: 15px;
+        }
+
+        .sidebar .nav-item .nav-link:hover {
+            background: #f0f4f8 !important;
+            color: #2c6b9e !important;
+        }
+
+        .sidebar .nav-item .nav-link:hover i {
+            color: #2c6b9e;
+        }
+
+        .sidebar .nav-item .nav-link.active {
+            background: #e8f0fe !important;
+            color: #2c6b9e !important;
+            font-weight: 600;
+        }
+
+        .sidebar .nav-item .nav-link.active i {
+            color: #2c6b9e;
+        }
+
+        .sidebar .sidebar-heading {
+            padding: 10px 20px 4px !important;
+            font-size: 10px !important;
+            color: #8a94a6 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            font-weight: 600 !important;
+        }
+
+        .sidebar .sidebar-divider {
+            margin: 4px 16px !important;
+            border-color: #edf2f7 !important;
+        }
+
+        /* ==========================================
+           CONTENT WRAPPER
+           ========================================== */
+        #content-wrapper {
+            background: #f8f9fc;
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 100vh !important;
+            width: 100% !important;
+            margin-left: 0 !important;
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+        }
+
+        @media (min-width: 769px) {
+            #content-wrapper {
+                width: calc(100% - 280px) !important;
+                margin-left: 280px !important;
+                max-width: calc(100% - 280px) !important;
+            }
+        }
+
+        #content {
+            flex: 1 !important;
+            padding: 0 16px !important;
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+        }
+
+        @media (max-width: 576px) {
+            #content {
+                padding: 0 10px !important;
+            }
+        }
+
+        .container-fluid {
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+        }
+
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding-left: 5px !important;
+                padding-right: 5px !important;
+            }
+        }
+
+        /* ==========================================
+           TOPBAR
+           ========================================== */
         .bg-navbar {
             background: #ffffff !important;
             border-bottom: 1px solid #e8ecf1;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            padding: 10px 20px;
+            padding: 8px 16px !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1020 !important;
         }
 
-        .bg-navbar .navbar-nav .nav-link {
-            color: #4a5568 !important;
-        }
-
-        .bg-navbar .navbar-nav .nav-link .text-white {
-            color: #1a2634 !important;
-        }
-
-        .bg-navbar .dropdown-menu {
-            border: 1px solid #e8ecf1;
-            border-radius: 10px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-            padding: 8px 0;
-        }
-
-        .bg-navbar .dropdown-menu .dropdown-item {
-            color: #4a5568;
-            font-size: 14px;
-            padding: 8px 20px;
-            transition: all 0.2s ease;
-        }
-
-        .bg-navbar .dropdown-menu .dropdown-item:hover {
-            background: #f0f4f8;
-            color: #2c6b9e;
-        }
-
-        .bg-navbar .dropdown-menu .dropdown-item i {
-            color: #8a94a6;
-        }
-
-        .bg-navbar .dropdown-menu .dropdown-item:hover i {
-            color: #2c6b9e;
-        }
-
-        /* FOOTER */
-        .sticky-footer {
-            background: #ffffff !important;
-            border-top: 1px solid #e8ecf1;
-            padding: 15px 0;
-            flex-shrink: 0 !important;
-            margin-top: auto !important;
-        }
-
-        .sticky-footer .copyright {
-            color: #8a94a6;
-            font-size: 13px;
-        }
-
-        .sticky-footer .copyright span {
-            color: #1a2634;
-            font-weight: 500;
-        }
-
-        /* SCROLL TO TOP */
-        .scroll-to-top {
-            background: #2c6b9e !important;
-            border-radius: 8px !important;
-            box-shadow: 0 4px 15px rgba(44, 107, 158, 0.3);
-        }
-
-        .scroll-to-top:hover {
-            background: #1f507a !important;
-        }
-
-        .scroll-to-top i {
-            color: #ffffff !important;
-        }
-
-        /* BADGE STOK */
-        .badge-stok {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .badge-stok.habis { background: #fee2e2; color: #b91c1c; }
-        .badge-stok.menipis { background: #fef3c7; color: #92400e; }
-        .badge-stok.cukup { background: #d1fae5; color: #047857; }
-
-        /* BADGE STATUS */
-        .badge-status {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .badge-status.tersedia { background: #d1fae5; color: #047857; }
-        .badge-status.dipinjam { background: #fef3c7; color: #92400e; }
-        .badge-status.perbaikan { background: #dbeafe; color: #1d4ed8; }
-        .badge-status.hilang { background: #fee2e2; color: #b91c1c; }
-
-        /* BADGE KONDISI */
-        .badge-condition {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .badge-condition.baik { background: #d1fae5; color: #047857; }
-        .badge-condition.rusak { background: #fee2e2; color: #b91c1c; }
-        .badge-condition.perbaikan { background: #fef3c7; color: #92400e; }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 280px !important;
-                min-width: 280px !important;
-                position: fixed !important;
-                z-index: 1040 !important;
-                height: 100vh !important;
-                left: 0 !important;
-                top: 0 !important;
-                transform: translateX(0) !important;
-            }
-            .sidebar.toggled {
-                transform: translateX(-100%) !important;
-            }
-            #sidebarToggleTop {
-                display: flex !important;
-            }
+        @media (max-width: 576px) {
             .bg-navbar {
-                padding: 8px 12px;
+                padding: 6px 10px !important;
             }
-            #content-wrapper {
-                width: 100% !important;
-                margin-left: 0 !important;
-                max-width: 100% !important;
-            }
+        }
+
+        #sidebarToggleTop {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 40px !important;
+            height: 40px !important;
+            border: none !important;
+            background: transparent !important;
+            color: #4a5568 !important;
+            font-size: 22px !important;
+            cursor: pointer !important;
         }
 
         @media (min-width: 769px) {
@@ -354,8 +312,195 @@ $pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
                 display: none !important;
             }
         }
+
+        /* ==========================================
+           TABLE RESPONSIVE
+           ========================================== */
+        .table-responsive {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        .table {
+            font-size: 13px !important;
+            min-width: 600px !important;
+        }
+
+        @media (max-width: 576px) {
+            .table {
+                font-size: 11px !important;
+                min-width: 500px !important;
+            }
+            .table thead th,
+            .table tbody td {
+                padding: 6px 8px !important;
+            }
+        }
+
+        /* ==========================================
+           CARD RESPONSIVE
+           ========================================== */
+        .card {
+            border-radius: 10px !important;
+            border: 1px solid #eef2f7 !important;
+        }
+
+        .card-body {
+            padding: 16px !important;
+        }
+
+        @media (max-width: 576px) {
+            .card-body {
+                padding: 12px !important;
+            }
+        }
+
+        /* ==========================================
+           STAT CARD RESPONSIVE
+           ========================================== */
+        .stat-card {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding: 12px 16px !important;
+        }
+
+        .stat-card .stat-icon {
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 16px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .stat-card .stat-value {
+            font-size: 20px !important;
+        }
+
+        @media (max-width: 576px) {
+            .stat-card {
+                padding: 10px 12px !important;
+                gap: 10px !important;
+            }
+            .stat-card .stat-icon {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 14px !important;
+            }
+            .stat-card .stat-value {
+                font-size: 16px !important;
+            }
+            .stat-card .stat-label {
+                font-size: 9px !important;
+            }
+        }
+
+        /* ==========================================
+           ROW & COLUMN RESPONSIVE
+           ========================================== */
+        .row {
+            margin-left: -8px !important;
+            margin-right: -8px !important;
+        }
+
+        .row > [class*="col-"] {
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+        }
+
+        @media (max-width: 576px) {
+            .row {
+                margin-left: -4px !important;
+                margin-right: -4px !important;
+            }
+            .row > [class*="col-"] {
+                padding-left: 4px !important;
+                padding-right: 4px !important;
+            }
+        }
+
+        /* ==========================================
+           BADGE & BUTTON RESPONSIVE
+           ========================================== */
+        .badge {
+            font-size: 10px !important;
+            padding: 3px 8px !important;
+        }
+
+        .btn-sm {
+            font-size: 11px !important;
+            padding: 4px 10px !important;
+        }
+
+        @media (max-width: 576px) {
+            .btn-sm {
+                font-size: 10px !important;
+                padding: 3px 8px !important;
+            }
+            .badge {
+                font-size: 9px !important;
+                padding: 2px 6px !important;
+            }
+        }
+
+        /* ==========================================
+           CHART RESPONSIVE
+           ========================================== */
+        .chart-wrapper {
+            height: 200px !important;
+            position: relative !important;
+        }
+
+        @media (max-width: 576px) {
+            .chart-wrapper {
+                height: 150px !important;
+            }
+        }
+
+        /* ==========================================
+           FOOTER
+           ========================================== */
+        .sticky-footer {
+            background: #ffffff !important;
+            border-top: 1px solid #e8ecf1;
+            padding: 10px 0 !important;
+            flex-shrink: 0 !important;
+            margin-top: auto !important;
+        }
+
+        .sticky-footer .copyright {
+            color: #8a94a6;
+            font-size: 12px !important;
+        }
+
+        @media (max-width: 576px) {
+            .sticky-footer .copyright {
+                font-size: 10px !important;
+            }
+        }
+
+        /* ==========================================
+           DROPDOWN
+           ========================================== */
+        .dropdown-menu {
+            z-index: 99999 !important;
+            border-radius: 10px !important;
+            border: none !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+            min-width: 180px !important;
+        }
+
+        @media (max-width: 576px) {
+            .dropdown-menu {
+                min-width: 160px !important;
+                right: 0 !important;
+                left: auto !important;
+            }
+        }
     </style>
 </head>
-
 <body id="page-top">
     <div id="wrapper">
+        <!-- ============================================
+        OVERLAY SIDEBAR - UNTUK MOBILE
+        ============================================ -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>

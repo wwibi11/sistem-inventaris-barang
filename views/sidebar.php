@@ -8,9 +8,7 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
 
 <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
 
-    <!-- ======================== -->
     <!-- BRAND -->
-    <!-- ======================== -->
     <div class="sidebar-brand d-flex align-items-center justify-content-center" 
          style="padding: 20px 16px; border-bottom: 1px solid #edf2f7; min-height: 80px; width: 100%;">
         <a class="d-flex align-items-center" href="index.php?url=dashboard" 
@@ -20,16 +18,14 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
             </div>
             <div class="sidebar-brand-text" style="color: #1a2634; font-weight: 700; font-size: 18px; line-height: 1.2; white-space: nowrap;">
                 <?= $app_name ?>
-                <small style="display: block; font-weight: 400; font-size: 11px; color: #8a94a6;">Sistem Manajemen Barang</small>
+                <small style="display: block; font-weight: 400; font-size: 11px; color: #8a94a6;">Sistem Manajemen</small>
             </div>
         </a>
     </div>
 
     <hr class="sidebar-divider my-0" style="margin: 0;">
 
-    <!-- ======================== -->
     <!-- DASHBOARD -->
-    <!-- ======================== -->
     <li class="nav-item" style="margin-top: 12px;">
         <a class="nav-link <?= $current_url == 'dashboard' ? 'active' : '' ?>" 
            href="index.php?url=dashboard"
@@ -38,27 +34,25 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
             <span style="font-size: 14px;">Dashboard</span>
         </a>
     </li>
-    <!-- ======================== -->
+
+    <hr class="sidebar-divider" style="margin: 10px 20px;">
+
     <!-- DATA MASTER -->
-    <!-- ======================== -->
     <div class="sidebar-heading" style="padding: 12px 20px 6px; font-size: 11px; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">
         Data Master
     </div>
 
-    <!-- Items - Semua Role -->
+    <!-- Items -->
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'items' ? 'active' : '' ?>" 
            href="index.php?url=items"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
             <i class="fas fa-box" style="width: 24px; font-size: 15px;"></i>
             <span style="font-size: 14px;">Data Barang</span>
-            <?php if ($user_role == 'staff'): ?>
-                <small style="font-size: 9px; color: #8a94a6; margin-left: auto;">(read)</small>
-            <?php endif; ?>
         </a>
     </li>
 
-    <!-- Categories - Admin & Super Admin -->
+    <!-- Categories - Admin Only -->
     <?php if (in_array($user_role, ['admin', 'super_admin'])): ?>
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'categories' ? 'active' : '' ?>" 
@@ -70,29 +64,23 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
     </li>
     <?php endif; ?>
 
-    <!-- Borrowers - Semua Role -->
+    <!-- Borrowers -->
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'borrowers' ? 'active' : '' ?>" 
            href="index.php?url=borrowers"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
             <i class="fas fa-users" style="width: 24px; font-size: 15px;"></i>
             <span style="font-size: 14px;">Data Peminjam</span>
-            <?php if ($user_role == 'staff'): ?>
-                <small style="font-size: 9px; color: #8a94a6; margin-left: auto;">(read)</small>
-            <?php endif; ?>
         </a>
     </li>
 
     <hr class="sidebar-divider" style="margin: 10px 20px;">
 
-    <!-- ======================== -->
     <!-- TRANSAKSI -->
-    <!-- ======================== -->
     <div class="sidebar-heading" style="padding: 12px 20px 6px; font-size: 11px; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">
         Transaksi
     </div>
 
-    <!-- Loans - Semua Role -->
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'loans' ? 'active' : '' ?>" 
            href="index.php?url=loans"
@@ -102,7 +90,6 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
         </a>
     </li>
 
-    <!-- Returns - Semua Role -->
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'returns' ? 'active' : '' ?>" 
            href="index.php?url=returns"
@@ -114,9 +101,7 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
 
     <hr class="sidebar-divider" style="margin: 10px 20px;">
 
-    <!-- ======================== -->
     <!-- LAPORAN -->
-    <!-- ======================== -->
     <div class="sidebar-heading" style="padding: 12px 20px 6px; font-size: 11px; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">
         Laporan
     </div>
@@ -126,21 +111,18 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
            href="index.php?url=reports"
            style="padding: 13px 20px; margin: 4px 14px; border-radius: 10px;">
             <i class="fas fa-file-alt" style="width: 24px; font-size: 15px;"></i>
-            <span style="font-size: 14px;">Laporan &amp; Export</span>
+            <span style="font-size: 14px;">Laporan & Export</span>
         </a>
     </li>
 
     <hr class="sidebar-divider" style="margin: 10px 20px;">
 
-    <!-- ======================== -->
-    <!-- MANAJEMEN (Khusus Admin & Super Admin) -->
-    <!-- ======================== -->
+    <!-- MANAJEMEN - Admin Only -->
     <?php if (in_array($user_role, ['admin', 'super_admin'])): ?>
     <div class="sidebar-heading" style="padding: 12px 20px 6px; font-size: 11px; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">
         Manajemen
     </div>
 
-    <!-- History - Admin & Super Admin -->
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'history' ? 'active' : '' ?>" 
            href="index.php?url=history"
@@ -149,10 +131,9 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
             <span style="font-size: 14px;">Riwayat Barang</span>
         </a>
     </li>
-    <?php endif; ?>
 
-    <?php if ($user_role == 'super_admin'): ?>
     <!-- Users - Super Admin Only -->
+    <?php if ($user_role == 'super_admin'): ?>
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'users' ? 'active' : '' ?>" 
            href="index.php?url=users"
@@ -162,7 +143,6 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
         </a>
     </li>
 
-    <!-- Settings - Super Admin Only -->
     <li class="nav-item">
         <a class="nav-link <?= $current_url == 'settings' ? 'active' : '' ?>" 
            href="index.php?url=settings"
@@ -172,8 +152,9 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
         </a>
     </li>
     <?php endif; ?>
+    <?php endif; ?>
 
-    <!-- Spacer bottom -->
+    <!-- Spacer -->
     <div style="flex: 1; min-height: 30px;"></div>
 
 </ul>

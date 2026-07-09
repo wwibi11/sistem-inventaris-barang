@@ -6,18 +6,16 @@ $app_version = function_exists('getAppVersion') ? getAppVersion() : '2.0.0';
 ?>
         </div> <!-- /#content -->
         
-        <!-- ============================================ -->
         <!-- FOOTER -->
-        <!-- ============================================ -->
         <footer class="sticky-footer bg-white">
             <div class="container my-auto">
                 <div class="copyright text-center my-auto">
-                    <span>
+                    <span style="font-size: 12px;">
                         <i class="fas fa-boxes" style="color: #2c6b9e;"></i>
                         <span style="color: #1a2634; font-weight: 500;"><?= $app_name ?></span>
                         <span style="color: #8a94a6;">&copy; <?= date('Y'); ?></span>
                         <span style="color: #d1d5db; margin: 0 8px;">|</span>
-                        <span style="color: #8a94a6; font-size: 12px;">
+                        <span style="color: #8a94a6; font-size: 11px;">
                             <i class="fas fa-code"></i> v<?= $app_version ?>
                         </span>
                     </span>
@@ -32,9 +30,9 @@ $app_version = function_exists('getAppVersion') ? getAppVersion() : '2.0.0';
 <!-- SCRIPTS -->
 <!-- ============================================ -->
 
-<!-- jQuery - PASTIKAN VERSI YANG BENAR -->
+<!-- jQuery -->
 <script src="vendor/jquery/jquery.min.js"></script>
-<!-- Bootstrap - PASTIKAN BUNDLE JS -->
+<!-- Bootstrap -->
 <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <!-- jQuery Easing -->
 <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
@@ -42,52 +40,76 @@ $app_version = function_exists('getAppVersion') ? getAppVersion() : '2.0.0';
 <script src="assets/js/ruang-admin.min.js"></script>
 
 <!-- ============================================ -->
-<!-- SCRIPT UNTUK DROPDOWN - TAMBAHKAN INI -->
+<!-- SCRIPT TOGGLE SIDEBAR - RESPONSIVE -->
 <!-- ============================================ -->
 <script>
 $(document).ready(function() {
     
-    // Toggle sidebar untuk mobile
-    $('#sidebarToggleTop').on('click', function(e) {
-        e.preventDefault();
-        $('.sidebar').toggleClass('toggled');
-    });
+    // ============================================
+    // TOGGLE SIDEBAR MOBILE - PASTIKAN INI
+    // ============================================
     
-    // Auto close sidebar di mobile saat klik di luar
-    $(document).on('click', function(e) {
-        if ($(window).width() < 768) {
-            if (!$(e.target).closest('.sidebar').length && !$(e.target).closest('#sidebarToggleTop').length) {
-                $('.sidebar').addClass('toggled');
-            }
-        }
-    });
-    
-    // Di desktop, sidebar selalu terbuka
-    if ($(window).width() >= 768) {
-        $('.sidebar').removeClass('toggled');
+    // Fungsi toggle sidebar
+    function toggleSidebar() {
+        $('.sidebar').toggleClass('show');
+        $('#sidebarOverlay').toggleClass('show');
     }
     
-    // Saat resize window
+    // Tombol hamburger
+    $('#sidebarToggleTop').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSidebar();
+        console.log('Sidebar toggled'); // Debug
+    });
+    
+    // Overlay - tutup sidebar saat diklik
+    $('#sidebarOverlay').on('click', function() {
+        $('.sidebar').removeClass('show');
+        $('#sidebarOverlay').removeClass('show');
+    });
+    
+    // Tutup sidebar saat resize ke desktop
     $(window).on('resize', function() {
-        if ($(window).width() >= 768) {
-            $('.sidebar').removeClass('toggled');
+        if ($(window).width() >= 769) {
+            $('.sidebar').addClass('show');
+            $('#sidebarOverlay').removeClass('show');
+        } else {
+            $('.sidebar').removeClass('show');
+            $('#sidebarOverlay').removeClass('show');
         }
     });
     
+    // Inisialisasi sidebar di desktop
+    if ($(window).width() >= 769) {
+        $('.sidebar').addClass('show');
+    }
+    
     // ============================================
-    // PASTIKAN DROPDOWN BOOTSTRAP BEKERJA
+    // DROPDOWN USER
     // ============================================
-    // Jika dropdown tidak bekerja, gunakan manual toggle
     $('#userDropdown').on('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         $(this).parent().find('.dropdown-menu').toggleClass('show');
     });
     
-    // Tutup dropdown saat klik di luar
     $(document).on('click', function(e) {
         if (!$(e.target).closest('.dropdown').length) {
             $('.dropdown-menu').removeClass('show');
+        }
+    });
+    
+    // ============================================
+    // AUTO CLOSE SIDEBAR SAAT KLIK DI LUAR
+    // ============================================
+    $(document).on('click', function(e) {
+        if ($(window).width() < 769) {
+            if (!$(e.target).closest('.sidebar').length && 
+                !$(e.target).closest('#sidebarToggleTop').length) {
+                $('.sidebar').removeClass('show');
+                $('#sidebarOverlay').removeClass('show');
+            }
         }
     });
     
