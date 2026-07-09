@@ -28,7 +28,6 @@ Sistem Manajemen Inventaris Barang berbasis **PHP Native** dan **MySQL** untuk m
 ## PREVIEW
 
 ![Dashboard](img/screenshot/dashboard.png)
-
 ---
 
 ## FITUR
