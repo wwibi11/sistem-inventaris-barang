@@ -1,10 +1,21 @@
-<?php session_start(); ?>
+<?php
+// auth/login.php
+
+session_start();
+
+// Load functions untuk mendapatkan nama aplikasi dari settings
+require_once __DIR__ . '/../config/functions.php';
+
+// Ambil nama aplikasi dari settings (dengan fallback)
+$app_name = function_exists('getAppName') ? getAppName() : 'Sistem Inventaris Barang';
+$app_version = function_exists('getAppVersion') ? getAppVersion() : '2.0.0';
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistem Inventaris Barang</title>
+    <title>Login - <?= $app_name ?></title>
     <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
     <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -208,7 +219,7 @@
         <div class="login-icon"><i class="fas fa-boxes"></i></div>
         <div class="login-header">
             <span class="app-badge"><i class="fas fa-star"></i> Inventaris</span>
-            <h3>Sistem Inventaris Barang</h3>
+            <h3><?= $app_name ?></h3>
             <p class="sub-title"><i class="fas fa-building"></i> Manajemen Aset & Peminjaman</p>
             <div class="divider-line"></div>
         </div>
@@ -252,7 +263,10 @@
         </div>
 
         <div class="login-footer">
-            <small><span class="footer-brand"><i class="fas fa-boxes"></i> Sistem Inventaris Barang</span><br>&copy; <?= date('Y'); ?> · Versi 2.0</small>
+            <small>
+                <span class="footer-brand"><i class="fas fa-boxes"></i> <?= $app_name ?></span>
+                <br>&copy; <?= date('Y'); ?> · Versi <?= $app_version ?>
+            </small>
         </div>
     </div>
 </div>

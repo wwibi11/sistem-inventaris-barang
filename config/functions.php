@@ -1,10 +1,51 @@
 <?php
-// config/functions.php
+// config/functions.php - Tambahkan di bagian atas setelah require_once
 
 // ============================================
 // LOAD DATABASE
 // ============================================
 require_once __DIR__ . '/database.php';
+
+// ============================================
+// SETTINGS FUNCTIONS - TAMBAHKAN INI!
+// ============================================
+
+function getSetting($key, $default = null) {
+    try {
+        $result = fetchOne("SELECT value FROM settings WHERE `key` = ?", [$key]);
+        return $result['value'] ?? $default;
+    } catch (Exception $e) {
+        return $default;
+    }
+}
+
+function getAppName() {
+    return getSetting('app_name', 'Sistem Inventaris Barang');
+}
+
+function getAppVersion() {
+    return getSetting('app_version', '2.0.0');
+}
+
+function isMaintenanceMode() {
+    return getSetting('maintenance_mode', 'false') === 'true';
+}
+
+function getLoanDuration() {
+    return (int) getSetting('loan_duration', 7);
+}
+
+function getMaxLoanPerBorrower() {
+    return (int) getSetting('max_loan_per_borrower', 5);
+}
+
+function getNotificationEmail() {
+    return getSetting('notification_email', 'admin@inventaris.com');
+}
+
+function isNotificationsEnabled() {
+    return getSetting('enable_notifications', 'true') === 'true';
+}
 
 // ============================================
 // SESSION & AUTH FUNCTIONS

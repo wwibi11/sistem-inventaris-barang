@@ -1,7 +1,6 @@
 <?php
-// views/header.php
-// PASTIKAN TIDAK ADA SPASI ATAU NEWLINE SEBELUM INI
-
+// Ambil nama aplikasi dari settings
+$app_name = getAppName();
 // Cek apakah user sudah login untuk menentukan title
 $pageTitle = isset($pageTitle) ? $pageTitle : 'Sistem Inventaris Barang';
 ?>

@@ -1,7 +1,17 @@
 <?php
 // views/sidebar.php
 
-$app_name = function_exists('getAppName') ? getAppName() : 'Sistem Inventaris Barang';
+$current_url = $_GET['url'] ?? 'dashboard';
+$user_role = $_SESSION['user']['role'] ?? 'staff';
+
+// Role labels
+$role_labels = [
+    'super_admin' => 'Super Admin',
+    'admin' => 'Admin',
+    'staff' => 'Staff'
+];
+
+$app_name = getAppName();
 $current_url = $_GET['url'] ?? 'dashboard';
 $user_role = $_SESSION['user']['role'] ?? 'staff';
 ?>
@@ -19,7 +29,7 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
                 <i class="fas fa-boxes" style="font-size: 32px; color: #2c6b9e;"></i>
             </div>
             <div class="sidebar-brand-text" style="color: #1a2634; font-weight: 700; font-size: 18px; line-height: 1.2; white-space: nowrap;">
-                <?= $app_name ?>
+                Inventaris
                 <small style="display: block; font-weight: 400; font-size: 11px; color: #8a94a6;">Sistem Manajemen Barang</small>
             </div>
         </a>
@@ -38,6 +48,9 @@ $user_role = $_SESSION['user']['role'] ?? 'staff';
             <span style="font-size: 14px;">Dashboard</span>
         </a>
     </li>
+
+    <hr class="sidebar-divider" style="margin: 10px 20px;">
+
     <!-- ======================== -->
     <!-- DATA MASTER -->
     <!-- ======================== -->

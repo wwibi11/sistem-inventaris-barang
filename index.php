@@ -1,12 +1,28 @@
 <?php
-// ============================================
-// MAIN ROUTING - SISTEM INVENTARIS BARANG
-// ============================================
+// index.php
+
 ob_start();
 session_start();
 
-// Load semua fungsi dari folder config
+// ============================================
+// LOAD FUNCTIONS
+// ============================================
 require_once __DIR__ . '/config/functions.php';
+
+// ============================================
+// CEK MAINTENANCE MODE
+// ============================================
+// Cek apakah fungsi exists dan maintenance mode aktif
+if (function_exists('isMaintenanceMode') && isMaintenanceMode()) {
+    // Allow super admin to access during maintenance
+    $isSuperAdmin = isset($_SESSION['user']) && $_SESSION['user']['role'] === 'super_admin';
+    
+    if (!$isSuperAdmin) {
+        // Tampilkan halaman maintenance
+        include 'maintenance.php';
+        exit;
+    }
+}
 
 // ============================================
 // CHECK LOGIN
@@ -35,7 +51,6 @@ if (!$user || $user['is_active'] != 1) {
 // ============================================
 // ROUTING
 // ============================================
-
 $url = $_GET['url'] ?? 'dashboard';
 $url = trim($url, '/');
 $parts = explode('/', $url);
@@ -46,7 +61,6 @@ $id = $parts[2] ?? null;
 // ============================================
 // ACTIONS WITHOUT HEADER (AJAX, DELETE, DLL)
 // ============================================
-
 $no_header_actions = [
     'delete', 'hapus', 'proses', 'download', 'import', 'export',
     'add_to_cart', 'update_cart', 'remove_cart', 'clear_cart',
@@ -56,43 +70,23 @@ $no_header_actions = [
 // ============================================
 // ROLE ACCESS DEFINITION
 // ============================================
-
 $role_access = [
-    'super_admin' => ['*'], // Akses semua
+    'super_admin' => ['*'],
     'admin' => [
-        'dashboard',
-        'categories',
-        'items',
-        'borrowers',
-        'loans',
-        'returns',
-        'reports',
-        'history'
+        'dashboard', 'categories', 'items', 'borrowers', 
+        'loans', 'returns', 'reports', 'history'
     ],
     'staff' => [
-        'dashboard',
-        'items',      // hanya lihat & pinjam
-        'borrowers',  // hanya lihat
-        'loans',      // pinjam & kembali
-        'returns',    // kembali
-        'reports'     // lihat laporan
+        'dashboard', 'items', 'borrowers', 'loans', 'returns', 'reports'
     ]
 ];
 
-// ============================================
-// MODUL YANG HANYA UNTUK ADMIN
-// ============================================
 $admin_only_modules = ['categories', 'users', 'settings', 'history'];
-
-// ============================================
-// ACTION YANG TIDAK BOLEH STAFF
-// ============================================
 $staff_forbidden_actions = ['create', 'edit', 'update', 'store', 'add', 'save', 'delete', 'hapus', 'remove'];
 
 // ============================================
 // CHECK FILE EXISTENCE
 // ============================================
-
 if ($module === 'dashboard') {
     $file = 'modules/dashboard/index.php';
 } else {
@@ -107,7 +101,6 @@ if (!file_exists($file)) {
 // ============================================
 // VALIDATE ROLE ACCESS
 // ============================================
-
 if (!in_array($action, $no_header_actions)) {
     $user_role = $_SESSION['user']['role'] ?? 'staff';
     
@@ -160,7 +153,6 @@ if (!in_array($action, $no_header_actions)) {
 // ============================================
 // SET GLOBAL VARIABLES
 // ============================================
-
 $current_user = $_SESSION['user'];
 $current_role = $current_user['role'];
 $current_module = $module;
@@ -174,9 +166,9 @@ if (function_exists('setCurrentUserId')) {
 // ============================================
 // INCLUDE FILE
 // ============================================
-
 if (in_array($action, $no_header_actions)) {
     include $file;
+    ob_end_flush();
     exit;
 }
 
@@ -185,4 +177,5 @@ include 'views/sidebar.php';
 include 'views/topbar.php';
 include $file;
 include 'views/footer.php';
+
 ob_end_flush();
